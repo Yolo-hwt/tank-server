@@ -1,14 +1,16 @@
 //全局变量引入
 const { SCREEN, PICTURES, POS } = require("../hook/globalParams");
 const { SCREEN_HEIGHT, SCREEN_WIDTH } = SCREEN;
-const { MENU_IMAGE, RESOURCE_IMAGE } = PICTURES();
+// const { MENU_IMAGE, RESOURCE_IMAGE } = PICTURES();
 //相关类引入
 const { SelectTank } = require('./tank')
+//服务器通信消息引入
+const { ServerSendMsg, DrawMsg, OPERA_DRAW_TYPE, MSG_TYPE_SERVER } = require("../socket/socketMessage")
 /**
  * 游戏开始菜单
  **/
-module.exports.Menu = function (gameInstance) {
-	this.ctx = gameInstance.ctx;
+var Menu = function () {
+	//this.ctx = gameInstance.ctx;
 	this.x = 0;
 	this.y = SCREEN_HEIGHT;
 	this.selectTank = new SelectTank();
@@ -18,27 +20,12 @@ module.exports.Menu = function (gameInstance) {
 	/**
 	 * 画菜单
 	 */
-	this.draw = function () {
-		this.times++;
-		var temp = 0;
-		if (parseInt(this.times / 6) % 2 == 0) {
-			temp = 0;
-		} else {
-			temp = this.selectTank.size;
-		}
-		if (this.y <= 0) {
-			this.y = 0;
-		} else {
-			this.y -= 5;
-		}
-		this.ctx.clearRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-		this.ctx.save();
-		//画背景
-		this.ctx.drawImage(MENU_IMAGE, this.x, this.y);
-		//画选择坦克
-		this.ctx.drawImage(RESOURCE_IMAGE, POS["selectTank"][0], POS["selectTank"][1] + temp, this.selectTank.size, this.selectTank.size,
-			this.selectTank.x, this.y + this.selectTank.ys[this.playNum - 1], this.selectTank.size, this.selectTank.size);
-		this.ctx.restore();
+	this.draw = function (ws) {
+		ServerSendMsg(
+			ws,
+			MSG_TYPE_SERVER.MSG_OPERA_DRAW,
+			new DrawMsg('menu_draw', OPERA_DRAW_TYPE.MENU_DRAW)
+		);
 	};
 
 	/**
@@ -53,3 +40,6 @@ module.exports.Menu = function (gameInstance) {
 		}
 	};
 };
+module.exports = {
+	Menu
+}

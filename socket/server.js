@@ -1,10 +1,12 @@
 //模块引入
 const http = require('http');
+//js引入
+require("../utils/Helper")
 //类引入
 const { WebSocketServer } = require("./webSocketServer")
 const { GameInstance } = require("../gameClass/instance");
 //游戏循环方法引入
-const { gameLoop } = require("../hook/gameLogic")
+const { gameLoop, initObject } = require("../hook/gameLogic")
 
 //静态参数
 const port = 1024//端口
@@ -28,6 +30,7 @@ server.on("upgrade", (req, socket, head) => {
         ws.name = name;
         //每个连接客户端对应的游戏实体类
         ws.gameInstance = new GameInstance(name);
+        initObject(ws.gameInstance);
         //开启游戏循环
         ws.gameLoopId = setInterval(() => {
             gameLoop(ws)

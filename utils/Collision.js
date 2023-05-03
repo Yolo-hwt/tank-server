@@ -2,6 +2,8 @@
 const { DIRECT, TAGS } = require("../hook/globalParams");
 const { UP, DOWN, LEFT, RIGHT } = DIRECT;
 const { WALL, GRID, WATER, HOME, ANOTHREHOME } = TAGS;
+//socketMessage引入
+const { ServerSendMsg, DrawMsg, SyncMsg, MSG_TYPE_SERVER, OPERA_DRAW_TYPE, SYNC_SERVER_TYPE } = require("../socket/socketMessage")
 /**
  * 检测2个物体是否碰撞
  * @param object1 物体1
@@ -117,7 +119,7 @@ module.exports.tankMapCollision = function (tank, gameInstance) {
  * @param bullet 子弹对象
  * @param mapobj 地图对象
  */
-module.exports.bulletMapCollision = function (bullet, gameInstance) {
+module.exports.bulletMapCollision = function (bullet, gameInstance, ws) {
 	let mapobj = gameInstance.map;
 	let tileNum = 0;//需要检测的tile数
 	let rowIndex = 0;//map中的行索引
@@ -192,6 +194,13 @@ module.exports.bulletMapCollision = function (bullet, gameInstance) {
 		}
 	}
 	//更新地图
-	gameInstance.map.updateMap(mapChangeIndex, 0);
+	//indexArr更新的地图索引，target更新的数值
+	const indexArr = mapChangeIndex, target = 0;
+	ServerSendMsg(
+		ws,
+		MSG_TYPE_SERVER.MSG_SYNC_SERVER,
+		new SyncMsg('map_update', SYNC_SERVER_TYPE.MAP_UPDATE, { indexArr, target })
+	);
+	//gameInstance.map.updateMap(mapChangeIndex, 0);
 	return result;
 }

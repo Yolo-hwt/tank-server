@@ -1,8 +1,8 @@
-const { MSG_TYPE_CLIENT, KEY_EVENT_TYPE, SYNC_DATA_TYPE } = require("./socketMessage")
+const { MSG_TYPE_CLIENT, KEY_EVENT_TYPE, SYNC_DATA_TYPE, SYNC_CLIENT_TYPE } = require("./socketMessage")
 const { STATE, KEYBOARD } = require("../hook/globalParams")
 const { MSG_BEAT, MSG_KEY, MSG_NORMAL, MSG_SYNC } = MSG_TYPE_CLIENT
 const { KEY_EVENT_UP, KEY_EVENT_DOWN } = KEY_EVENT_TYPE
-const { STAGE_ISREADY } = SYNC_DATA_TYPE
+const { STAGE_ISREADY } = SYNC_CLIENT_TYPE
 const {
     GAME_STATE_MENU,
     GAME_STATE_INIT,
@@ -10,7 +10,8 @@ const {
     GAME_STATE_START,
     GAME_STATE_WIN,
 } = STATE;
-
+//引入gameLogic方法
+const { preLevel, nextLevel } = require("../hook/gameLogic")
 //根据客户端发送的msg来运行游戏逻辑
 //返回客户端相应的控制指令
 module.exports.clientMsgHandler = function (cMsg, ws) {
@@ -53,13 +54,14 @@ const heartbeatMsgHandler = function (data) {
 //键盘事件处理
 const keyEventHandler = function (ws, data) {
     const keyType = data.keyType ?? "default"
+    let gameInstance = ws.gameInstance;
     switch (keyType) {
         case KEY_EVENT_DOWN: {
-            keydownMsgHandler(ws, data)
+            keydownMsgHandler(gameInstance, data)
             break;
         }
         case KEY_EVENT_UP: {
-            keyupMsgHandler(data)
+            keyupMsgHandler(gameInstance, data)
             break;
         }
         default: {
@@ -69,10 +71,10 @@ const keyEventHandler = function (ws, data) {
     }
 }
 //键盘按下事件
-const keydownMsgHandler = function (ws, data) {
+const keydownMsgHandler = function (gameInstance, data) {
     // ws.send(JSON.stringify({ text: "测试消息" }))
     const code = data.code;
-    let gameInstance = ws.gameInstance;
+
     switch (gameInstance.gameState) {
         case GAME_STATE_MENU:
             if (code == KEYBOARD.ENTER) {
@@ -89,7 +91,6 @@ const keydownMsgHandler = function (ws, data) {
                 } else if (code == KEYBOARD.UP) {
                     n = -1;
                 }
-
                 gameInstance.menu.next(n);
             }
             break;
@@ -99,12 +100,13 @@ const keydownMsgHandler = function (ws, data) {
             }
             //射击
             if (code == KEYBOARD.SPACE && gameInstance.player1.lives > 0) {
-                gameInstance.player1.shoot(BULLET_TYPE_PLAYER);
+                //params(ws, gameInstance, tankIndex, type)
+                gameInstance.player1.shoot(ws, gameInstance, 1, 1);
             } else if (
                 code == KEYBOARD.ENTER &&
                 gameInstance.player2.lives > 0
             ) {
-                gameInstance.player2.shoot(BULLET_TYPE_PLAYER);
+                gameInstance.player2.shoot(ws, gameInstance, 2, 1);
             } else if (code == KEYBOARD.N) {
                 nextLevel(gameInstance);
             } else if (code == KEYBOARD.P) {
@@ -114,7 +116,8 @@ const keydownMsgHandler = function (ws, data) {
     }
 }
 //键盘回上事件
-const keyupMsgHandler = function (data) {
+const keyupMsgHandler = function (gameInstance, data) {
+    gameInstance.keys.remove(data.keyCode);
     //console.log(data);
 }
 //客户端同步数据到服务器

@@ -1,6 +1,6 @@
 //全局变量引入
 const { POS, PICTURES } = require("../hook/globalParams");
-const { RESOURCE_IMAGE } = PICTURES();
+// const { RESOURCE_IMAGE } = PICTURES();
 
 
 module.exports.Num = function (context) {
