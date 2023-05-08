@@ -11,12 +11,13 @@ const { CheckIntersect, bulletMapCollision } = require("../utils/Collision")
 //socketMessage引入
 const {
 	ServerSendMsg, SyncMsg, DrawMsg,
+	OPERA_AUDIO_TYPE,
 	MSG_TYPE_SERVER,
 	SYNC_SERVER_TYPE,
 	OPERA_DRAW_TYPE
 } = require("../socket/socketMessage")
 //gameLogic方法引入
-const { controlAudioPlay } = require("../hook/gameLogic")
+const { controlAudioPlay } = require("../hook/controlClientLogic")
 const Bullet = function (owner, type, dir) {
 
 	this.x = 0;
@@ -35,15 +36,22 @@ const Bullet = function (owner, type, dir) {
 		this.bulletIndex = bulletIndex;
 		//通知客户端绘制子弹
 		//this.ctx.drawImage(RESOURCE_IMAGE, POS["bullet"][0] + this.dir * this.size, POS["bullet"][1], this.size, this.size, this.x, this.y, this.size, this.size);
-		const { dir, x, y } = this;
-		let refers = { dir, x, y, bulletIndex };
+		// const { dir, x, y } = this;
+		// let refers = { dir, x, y, bulletIndex };
+		// ServerSendMsg(
+		// 	ws,
+		// 	MSG_TYPE_SERVER.MSG_OPERA_DRAW,
+		// 	new DrawMsg('bullet_draw', OPERA_DRAW_TYPE.BULLET_DRAW, refers)
+		// );
+
+		this.move(gameInstance, ws, bulletIndex);
+		//同步客户端子弹位置
+		const refers = { bulletIndex, x: this.x, y: this.y }
 		ServerSendMsg(
 			ws,
 			MSG_TYPE_SERVER.MSG_OPERA_DRAW,
 			new DrawMsg('bullet_draw', OPERA_DRAW_TYPE.BULLET_DRAW, refers)
 		);
-
-		this.move(gameInstance, ws, bulletIndex);
 	};
 
 	this.move = function (gameInstance, ws, bulletIndex) {
@@ -56,7 +64,7 @@ const Bullet = function (owner, type, dir) {
 		} else if (this.dir == LEFT) {
 			this.x -= this.speed;
 		}
-
+		//碰撞检测
 		this.isHit(gameInstance, ws, bulletIndex);
 	};
 
@@ -110,7 +118,8 @@ const Bullet = function (owner, type, dir) {
 							if (enemyObj.lives > 1) {
 								enemyObj.lives--;
 							} else {
-								enemyObj.distroy();
+								//params:ws, gameInstance,tankType, tankIndex
+								enemyObj.distroy(ws, gameInstance, 2, i);
 							}
 							this.hit = true;
 							break;
@@ -120,12 +129,12 @@ const Bullet = function (owner, type, dir) {
 			} else if (this.type == BULLET_TYPE_ENEMY) {
 				if (gameInstance.player1.lives > 0 && CheckIntersect(this, gameInstance.player1, 0)) {
 					if (!gameInstance.player1.isProtected && !gameInstance.player1.isDestroyed) {
-						gameInstance.player1.distroy();
+						gameInstance.player1.distroy(ws, gameInstance, 1, 1);
 					}
 					this.hit = true;
 				} else if (gameInstance.player2.lives > 0 && CheckIntersect(this, gameInstance.player2, 0)) {
 					if (!gameInstance.player2.isProtected && !gameInstance.player2.isDestroyed) {
-						gameInstance.player2.distroy();
+						gameInstance.player2.distroy(ws, gameInstance, 1, 2);
 					}
 					this.hit = true;
 				}
@@ -134,17 +143,17 @@ const Bullet = function (owner, type, dir) {
 
 
 		if (this.hit) {
-			this.distroy(bulletIndex);
+			this.distroy(ws, gameInstance, bulletIndex);
 		}
 	};
 
 	/**
 	 * 销毁
 	 */
-	this.distroy = function (gameInstance, bulletIndex) {
+	this.distroy = function (ws, gameInstance, bulletIndex) {
 		this.isDestroyed = true;
 		const crackType = CRACK_TYPE.CRACK_TYPE_BULLET;
-		gameInstance.crackArray.push(new CrackAnimation(crackType, this));
+		// gameInstance.crackArray.push(new CrackAnimation(crackType, this));
 		//同步客户端
 		ServerSendMsg(
 			ws,

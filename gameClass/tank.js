@@ -18,7 +18,9 @@ const {
 	ServerSendMsg
 } = require("../socket/socketMessage")
 //
-const { controlAudioPlay } = require("../hook/gameLogic")
+const {
+	controlAudioPlay
+} = require("../hook/controlClientLogic")
 /**
  * 坦克基类
  * ..returns
@@ -43,7 +45,8 @@ var Tank = function () {
 		if (this.isAI && gameInstance.emenyStopTime > 0) {
 			return;
 		}
-		if (this.isShooting) {
+		if (this.isShooting) {//子弹未销毁之前不添加新的子弹
+			// console.log("isShooting");
 			return;
 		} else {
 			var tempX = this.x;
@@ -66,39 +69,56 @@ var Tank = function () {
 			this.bullet.x = tempX;
 			this.bullet.y = tempY;
 			//需要告知客户端指定哪一个坦克生成bullet
-			let refers = { tankIndex: tankIndex, type: type, dir: this.dir };
+			let refers = { tankIndex, type, dir: this.dir, tempX, tempY };
 			ServerSendMsg(
 				ws,
 				MSG_TYPE_SERVER.MSG_SYNC_SERVER,
 				new SyncMsg('bullet_create', SYNC_SERVER_TYPE.BULLET_CREATE, refers)
 			);
 			if (!this.isAI) {
-				//通知客户端play
+				//通知客户端play 玩家子弹攻击音效
 				//ATTACK_AUDIO.play();
-				controlAudioPlay(ws, 'attack_audio', OPERA_AUDIO_TYPE.AUDIO_ATTACK, OPERA_AUDIO_TYPE.AUDIO_PLAY)
+				controlAudioPlay(ws, 'attack_audio', OPERA_AUDIO_TYPE.AUDIO_ATTACK, OPERA_AUDIO_TYPE.AUDIO_PLAY);
 			}
+			//将子弹加入子弹数组中
 			gameInstance.bulletArray.push(this.bullet);
-			this.bullet.draw(ws, gameInstance, gameInstance.bulletArray.length - 1);
-			//将子弹加入的子弹数组中
+			//交给gameloop循环中同一控制子弹绘制移动参数变化
+			//this.bullet.draw(ws, gameInstance, gameInstance.bulletArray.length - 1);
+
 			this.isShooting = true;
 		}
 	}
 	/**
 	  * 坦克被击毁
 	  */
-	this.distroy = function (gameInstance, tankIndex) {
+	//type；1玩家 2ai坦克
+	//tankIndex:1-1/2玩家1或2 2-nai坦克index
+	this.distroy = function (ws, gameInstance, type, tankIndex) {
 		this.isDestroyed = true;
+		if (type == 1) {
+			this.renascenc(tankIndex, gameInstance);
+			//同步客户端player状态
+			ServerSendMsg(
+				ws,
+				MSG_TYPE_SERVER.MSG_SYNC_SERVER,
+				new SyncMsg('player_renascenc', SYNC_SERVER_TYPE.PLAYER_RENASCENC, { tankIndex })
+			);
+		}
 		const crackType = CRACK_TYPE.CRACK_TYPE_TANK
-		gameInstance.crackArray.push(new CrackAnimation(crackType, this));
+		// gameInstance.crackArray.push(new CrackAnimation(crackType, this));
 		//客户端同步添加爆炸动画Obj
 		ServerSendMsg(
 			ws,
 			MSG_TYPE_SERVER.MSG_SYNC_SERVER,
-			new SyncMsg('add_crack_tank', SYNC_SERVER_TYPE.CRACK_ADD, { crackType, tankType: this.type, tankIndex })
+			new SyncMsg('add_crack_tank', SYNC_SERVER_TYPE.CRACK_ADD, { crackType, tankType: type, tankIndex })
 		);
 		//TANK_DESTROY_AUDIO.play();
 		//客户端播放坦克销毁音频
-		controlAudioPlay(ws, 'tankdestroy_audio', OPERA_AUDIO_TYPE.AUDIO_TANK_DESTROY, OPERA_AUDIO_TYPE.AUDIO_PLAY)
+		let audioType = OPERA_AUDIO_TYPE.AUDIO_TANK_DESTROY
+		if (type == 1) {
+			audioType = OPERA_AUDIO_TYPE.AUDIO_PLAYER_DESTORY
+		}
+		controlAudioPlay(ws, 'tankdestroy_audio', audioType, OPERA_AUDIO_TYPE.AUDIO_PLAY)
 	};
 
 	//坦克移动
@@ -201,20 +221,20 @@ var PlayTank = function () {
 	this.isProtected = true;//是否受保护
 	this.protectedTime = 500;//保护时间
 	this.offsetX = 0;//坦克2与坦克1的距离
-	this.speed = 2;//坦克的速度
-	this.distroy = function (gameInstance, tankIndex) {
-		this.isDestroyed = true;
-		const crackType = CRACK_TYPE.CRACK_TYPE_TANK
-		gameInstance.crackArray.push(new CrackAnimation(crackType, this));
-		//客户端同步添加爆炸动画Obj
-		ServerSendMsg(
-			ws,
-			MSG_TYPE_SERVER.MSG_SYNC_SERVER,
-			new SyncMsg('add_crack_player', SYNC_SERVER_TYPE.CRACK_ADD, { crackType, tankType: this.type, tankIndex })
-		);
-		//客户端播放坦克销毁音频
-		controlAudioPlay(ws, 'playerdestroy_audio', OPERA_AUDIO_TYPE.AUDIO_PLAYER_DESTORY, OPERA_AUDIO_TYPE.AUDIO_PLAY)
-	};
+	this.speed = 7;//坦克的速度
+	// this.distroy = function (ws, gameInstance, tankIndex) {
+	// 	this.isDestroyed = true;
+	// 	const crackType = CRACK_TYPE.CRACK_TYPE_TANK
+	// 	gameInstance.crackArray.push(new CrackAnimation(crackType, this));
+	// 	//客户端同步添加爆炸动画Obj
+	// 	ServerSendMsg(
+	// 		ws,
+	// 		MSG_TYPE_SERVER.MSG_SYNC_SERVER,
+	// 		new SyncMsg('add_crack_player', SYNC_SERVER_TYPE.CRACK_ADD, { crackType, tankType: this.type, tankIndex })
+	// 	);
+	// 	//客户端播放坦克销毁音频
+	// 	controlAudioPlay(ws, 'playerdestroy_audio', OPERA_AUDIO_TYPE.AUDIO_PLAYER_DESTORY, OPERA_AUDIO_TYPE.AUDIO_PLAY)
+	// };
 
 	this.renascenc = function (player, gameInstance) {
 		this.lives--;
@@ -249,28 +269,9 @@ var EnemyOne = function () {
 	this.aiTankType = -1;
 
 	this.draw = function (ws, gameInstance, tankIndex) {
-		this.times++;
-		const { x, y, dir, aiTankType } = this;
-		if (!this.isAppear) {//出现之前绘制
-			let temp = parseInt(this.times / 5) % 7;
-			ServerSendMsg(
-				ws,
-				MSG_TYPE_SERVER.MSG_OPERA_DRAW,
-				new DrawMsg('tankbefore_draw', OPERA_DRAW_TYPE.TANKBEFORE_DRAW, { tankIndex, temp, x, y })
-			);
-			if (this.times == 35) {
-				this.isAppear = true;
-				this.times = 0;
-				//params(ws, gameInstance, tankIndex, type)//2标识为ai
-				this.shoot(ws, gameInstance, tankIndex, 2);
-			}
-		} else {//isAppear出现之后绘制
-			ServerSendMsg(
-				ws,
-				MSG_TYPE_SERVER.MSG_OPERA_DRAW,
-				new DrawMsg('tankafter_draw', OPERA_DRAW_TYPE.TANKAFTER_DRAW, { tankIndex, x, y, dir, aiTankType })
-			);
-			//以一定的概率射击
+		if (this.isAppear) {//isAppear出现之后绘制
+			this.times++;
+			// 以一定的概率射击
 			if (this.times % 50 == 0) {
 				let ra = Math.random();
 				if (ra < this.shootRate) {
@@ -278,7 +279,19 @@ var EnemyOne = function () {
 				}
 				this.times = 0;
 			}
-			// this.move(this.gameCtx);
+			this.move(gameInstance);
+			//同步客户端坦克位置
+			//将移动后坦克位置数据同步客户端
+			const { dir, x, y } = this;
+			ServerSendMsg(
+				ws,
+				MSG_TYPE_SERVER.MSG_SYNC_SERVER,
+				new SyncMsg(
+					'aitank_move',
+					SYNC_SERVER_TYPE.AITANK_MOVE,
+					{ index: tankIndex, dir, x, y }
+				)
+			);
 		}
 	};
 };
@@ -298,28 +311,9 @@ var EnemyTwo = function () {
 	this.speed = 1;
 	this.aiTankType = -1;
 	this.draw = function (ws, gameInstance, tankIndex) {
-		this.times++;
-		const { x, y, dir, aiTankType } = this;
-		if (!this.isAppear) {//出现之前绘制
-			let temp = parseInt(this.times / 5) % 7;
-			ServerSendMsg(
-				ws,
-				MSG_TYPE_SERVER.MSG_OPERA_DRAW,
-				new DrawMsg('tankbefore_draw', OPERA_DRAW_TYPE.TANKBEFORE_DRAW, { tankIndex, temp, x, y })
-			);
-			if (this.times == 35) {
-				this.isAppear = true;
-				this.times = 0;
-				//params(ws, gameInstance, tankIndex, type)//2标识为ai
-				this.shoot(ws, gameInstance, tankIndex, 2);
-			}
-		} else {//isAppear出现之后绘制
-			ServerSendMsg(
-				ws,
-				MSG_TYPE_SERVER.MSG_OPERA_DRAW,
-				new DrawMsg('tankafter_draw', OPERA_DRAW_TYPE.TANKAFTER_DRAW, { tankIndex, x, y, dir, aiTankType })
-			);
-			//以一定的概率射击
+		if (this.isAppear) {//isAppear出现之后绘制
+			this.times++;
+			// 以一定的概率射击
 			if (this.times % 50 == 0) {
 				let ra = Math.random();
 				if (ra < this.shootRate) {
@@ -327,7 +321,19 @@ var EnemyTwo = function () {
 				}
 				this.times = 0;
 			}
-			// this.move(this.gameCtx);
+			this.move(gameInstance);
+			//同步客户端坦克位置
+			//将移动后坦克位置数据同步客户端
+			const { dir, x, y } = this;
+			ServerSendMsg(
+				ws,
+				MSG_TYPE_SERVER.MSG_SYNC_SERVER,
+				new SyncMsg(
+					'aitank_move',
+					SYNC_SERVER_TYPE.AITANK_MOVE,
+					{ index: tankIndex, dir, x, y }
+				)
+			);
 		}
 	};
 };
@@ -348,28 +354,9 @@ var EnemyThree = function () {
 	this.speed = 0.5;
 	this.aiTankType = -1;
 	this.draw = function (ws, gameInstance, tankIndex) {
-		this.times++;
-		const { x, y, dir, aiTankType } = this;
-		if (!this.isAppear) {//出现之前绘制
-			let temp = parseInt(this.times / 5) % 7;
-			ServerSendMsg(
-				ws,
-				MSG_TYPE_SERVER.MSG_OPERA_DRAW,
-				new DrawMsg('tankbefore_draw', OPERA_DRAW_TYPE.TANKBEFORE_DRAW, { tankIndex, temp, x, y })
-			);
-			if (this.times == 35) {
-				this.isAppear = true;
-				this.times = 0;
-				//params(ws, gameInstance, tankIndex, type)//2标识为ai
-				this.shoot(ws, gameInstance, tankIndex, 2);
-			}
-		} else {//isAppear出现之后绘制
-			ServerSendMsg(
-				ws,
-				MSG_TYPE_SERVER.MSG_OPERA_DRAW,
-				new DrawMsg('tankafter_draw', OPERA_DRAW_TYPE.TANKAFTER_DRAW, { tankIndex, x, y, dir, aiTankType })
-			);
-			//以一定的概率射击
+		if (this.isAppear) {//isAppear出现之后绘制
+			this.times++;
+			// 以一定的概率射击
 			if (this.times % 50 == 0) {
 				let ra = Math.random();
 				if (ra < this.shootRate) {
@@ -377,7 +364,19 @@ var EnemyThree = function () {
 				}
 				this.times = 0;
 			}
-			// this.move(this.gameCtx);
+			this.move(gameInstance);
+			//同步客户端坦克位置
+			//将移动后坦克位置数据同步客户端
+			const { dir, x, y } = this;
+			ServerSendMsg(
+				ws,
+				MSG_TYPE_SERVER.MSG_SYNC_SERVER,
+				new SyncMsg(
+					'aitank_move',
+					SYNC_SERVER_TYPE.AITANK_MOVE,
+					{ index: tankIndex, dir, x, y }
+				)
+			);
 		}
 	};
 };

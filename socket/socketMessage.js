@@ -33,12 +33,18 @@ const OPERA_DRAW_TYPE = {
 //数据同步操作
 //对应SyncMsg中的syncType
 const SYNC_SERVER_TYPE = {
+    BASIC_DATA_SERVER: "basic_data_server",
+    PLAYER_MOVE: "player_move",
+    BULLET_MOVE: 'bullet_move',
+    AITANK_MOVE: "aitank_move",
+    PLAYER_RENASCENC: "player_renascenc",
+    SKIP_LEVEL: "skip_level",
+    GAME_STATE: "game_state",
     PLAYER1_ISPROTECTED: 'player1_isprotected',
     PLAYER2_ISPROTECTED: 'player2_isprotected',
     ENEMYTANK_ADD: 'add_enemyTank',
     ENEMYTANK_REMOVE: 'remove_enemyTank',
     BULLET_REMOVE: 'remove_bullet',
-    BULLET_SITE: 'bullet_site',
     BULLET_CREATE: 'bullet_create',
     MAP_UPDATE: "map_update",
     CRACK_ADD_TANK: "add_crack_tank",
@@ -46,7 +52,8 @@ const SYNC_SERVER_TYPE = {
     CRACK_ADD_BULLET: "add_crack_bullet",
     CRACK_ADD: "crack_add",
     CARCK_REMOVE: "carck_remove",
-    PROP_ADD: "prop_add"
+    PROP_ADD: "prop_add",
+    KEYS_MANAGE: "keys_manage"
 }
 
 //音频播放操作
@@ -77,6 +84,11 @@ const KEY_EVENT_TYPE = {
 }
 const SYNC_CLIENT_TYPE = {
     STAGE_ISREADY: 'stage.isReady',
+    PLAYER_DRAW: "player_draw",
+    BASIC_DATA_CLIENT: "basic_data_client",
+    PLAYER_PROTECTED: "player_protected",
+    OVERANIMATE_ISOK: "over_animation_is_ok",
+    ENEMY_ISAPPEAR: "enemy_isappear",
 }
 
 

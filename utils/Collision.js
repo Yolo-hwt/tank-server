@@ -193,7 +193,9 @@ module.exports.bulletMapCollision = function (bullet, gameInstance, ws) {
 			}
 		}
 	}
-	//更新地图
+	//服务器更新地图
+	gameInstance.map.updateMap(mapChangeIndex, 0);
+	//通知客户端更新地图
 	//indexArr更新的地图索引，target更新的数值
 	const indexArr = mapChangeIndex, target = 0;
 	ServerSendMsg(
@@ -201,6 +203,6 @@ module.exports.bulletMapCollision = function (bullet, gameInstance, ws) {
 		MSG_TYPE_SERVER.MSG_SYNC_SERVER,
 		new SyncMsg('map_update', SYNC_SERVER_TYPE.MAP_UPDATE, { indexArr, target })
 	);
-	//gameInstance.map.updateMap(mapChangeIndex, 0);
+
 	return result;
 }

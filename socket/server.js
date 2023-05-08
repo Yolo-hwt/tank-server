@@ -7,7 +7,9 @@ const { WebSocketServer } = require("./webSocketServer")
 const { GameInstance } = require("../gameClass/instance");
 //游戏循环方法引入
 const { gameLoop, initObject } = require("../hook/gameLogic")
-
+//socketMessage
+//全局变量引入
+const { STATE } = require("../hook/globalParams")
 //静态参数
 const port = 1024//端口
 const pathname = '/ws/'//访问路径

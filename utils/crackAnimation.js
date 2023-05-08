@@ -33,12 +33,12 @@ module.exports.CrackAnimation = function (type, crackObj) {
 		var temp = parseInt(this.times / gaptime);
 		//this.ctx.drawImage(RESOURCE_IMAGE, POS[this.posName][0] + temp * this.size, POS[this.posName][1], this.size, this.size, this.x, this.y, this.size, this.size);
 		//客户端绘制crack动画
-		const { posName, x, y } = this;
-		ServerSendMsg(
-			ws,
-			MSG_TYPE_SERVER.MSG_OPERA_DRAW,
-			new DrawMsg('crackanimation_draw', OPERA_DRAW_TYPE.CRACK_DRAW, { posName, x, y, temp, crackIndex })
-		);
+		// const { posName, x, y } = this;
+		// ServerSendMsg(
+		// 	ws,
+		// 	MSG_TYPE_SERVER.MSG_OPERA_DRAW,
+		// 	new DrawMsg('crackanimation_draw', OPERA_DRAW_TYPE.CRACK_DRAW, { posName, x, y, temp, crackIndex })
+		// );
 		this.times += this.tempDir;
 		if (this.times > this.frame * gaptime - parseInt(gaptime / 2)) {
 			this.tempDir = -1;

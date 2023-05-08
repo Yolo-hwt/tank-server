@@ -5,7 +5,7 @@ const { SCREEN_HEIGHT, SCREEN_WIDTH } = SCREEN;
 const { WALL, WATER, GRASS, GRID, ICE, HOME } = TAGS
 // const { RESOURCE_IMAGE } = PICTURES();
 //类引入
-const { Num } = require("./num");
+
 //
 const {
 	ServerSendMsg,
@@ -15,7 +15,7 @@ const {
 	OPERA_AUDIO_TYPE
 } = require("../socket/socketMessage")
 //
-const { controlAudioPlay } = require("../hook/gameLogic")
+const { controlAudioPlay } = require("../hook/controlClientLogic")
 module.exports.Map = function () {
 	this.level = 1;
 	this.mapLevel = null;
@@ -32,6 +32,7 @@ module.exports.Map = function () {
 	this.mapWidth = 416;
 	this.mapHeight = 416;
 
+	//设置地图关卡
 	this.setMapLevel = function (level) {
 		this.level = level;
 		var tempMap = MAPLEVELS['map' + this.level];
@@ -54,7 +55,27 @@ module.exports.Map = function () {
 		);
 		//PLAYER_DESTROY_AUDIO.play();
 		//客户端播放坦克销毁音频
-		controlAudioPlay(ws, 'playerdestroy_audio', OPERA_AUDIO_TYPE.AUDIO_PLAYER_DESTORY, OPERA_AUDIO_TYPE.AUDIO_PLAY)
+		//controlAudioPlay(ws, 'playerdestroy_audio', OPERA_AUDIO_TYPE.AUDIO_PLAYER_DESTORY, OPERA_AUDIO_TYPE.AUDIO_PLAY)
+	};
+	/**
+	 * 更新地图
+	 * @param indexArr 需要更新的地图索引数组，二维数组，如[[1,1],[2,2]]
+	 * @param target 更新之后的数值
+	 */
+	this.updateMap = function (indexArr, target) {
+		if (indexArr != null && indexArr.length > 0) {
+			let indexSize = indexArr.length;
+			for (let i = 0; i < indexSize; i++) {
+				var index = indexArr[i];
+				this.mapLevel[index[0]][index[1]] = target;
+				// if (target > 0) {
+				// 	this.wallCtx.drawImage(RESOURCE_IMAGE, this.tileSize * (target - 1) + POS["map"][0], POS["map"][1], this.tileSize, this.tileSize, index[1] * this.tileSize + this.offsetX, index[0] * this.tileSize + this.offsetY, this.tileSize, this.tileSize);
+				// } else {
+				// 	this.wallCtx.fillStyle = "#000";
+				// 	this.wallCtx.fillRect(index[1] * this.tileSize + this.offsetX, index[0] * this.tileSize + this.offsetY, this.tileSize, this.tileSize);
+				// }
+			}
+		}
 	};
 	/**
 	 * 绘制地图
@@ -156,26 +177,7 @@ module.exports.Map = function () {
 	// 	//this.wallCtx.drawImage(RESOURCE_IMAGE,POS["num"][0]+lives*14,POS["num"][1],14, 14,x, y,14, 14);
 	// };
 
-	/**
-	 * 更新地图
-	 * @param indexArr 需要更新的地图索引数组，二维数组，如[[1,1],[2,2]]
-	 * @param target 更新之后的数值
-	 */
-	// this.updateMap = function (indexArr, target) {
-	// 	if (indexArr != null && indexArr.length > 0) {
-	// 		var indexSize = indexArr.length;
-	// 		for (var i = 0; i < indexSize; i++) {
-	// 			var index = indexArr[i];
-	// 			this.mapLevel[index[0]][index[1]] = target;
-	// 			if (target > 0) {
-	// 				this.wallCtx.drawImage(RESOURCE_IMAGE, this.tileSize * (target - 1) + POS["map"][0], POS["map"][1], this.tileSize, this.tileSize, index[1] * this.tileSize + this.offsetX, index[0] * this.tileSize + this.offsetY, this.tileSize, this.tileSize);
-	// 			} else {
-	// 				this.wallCtx.fillStyle = "#000";
-	// 				this.wallCtx.fillRect(index[1] * this.tileSize + this.offsetX, index[0] * this.tileSize + this.offsetY, this.tileSize, this.tileSize);
-	// 			}
-	// 		}
-	// 	}
-	// };
+
 
 
 };

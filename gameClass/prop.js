@@ -9,7 +9,7 @@ const {
 	OPERA_CLEAR_TYPE, OPERA_DRAW_TYPE, OPERA_AUDIO_TYPE
 } = require("../socket/socketMessage")
 //相关方法引入
-const { clearRectByCtxName, controlAudioPlay } = require("../hook/gameLogic")
+const { clearRectByCtxName, controlAudioPlay } = require("../hook/controlClientLogic")
 
 module.exports.Prop = function (gameInstance) {
 	this.x = 0;
