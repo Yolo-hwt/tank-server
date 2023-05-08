@@ -1,20 +1,16 @@
 //全局变量引入
-const { POS, DIRECT, PICTURES, SOUNDS, CRACK_TYPE } = require("../hook/globalParams");
+const { DIRECT, CRACK_TYPE } = require("../hook/globalParams");
 const { UP, DOWN, LEFT, RIGHT } = DIRECT;
 //工具函数引入
-const { CrackAnimation } = require("../utils/crackAnimation")
 const { tankMapCollision } = require("../utils/Collision")
 //外部类引入
 const { Bullet } = require("../gameClass/bullet")
 //socketMessage变量引入
 const {
 	MSG_TYPE_SERVER,
-	OPERA_DRAW_TYPE,
 	SYNC_SERVER_TYPE,
 	OPERA_AUDIO_TYPE,
-	AudioMsg,
 	SyncMsg,
-	DrawMsg,
 	ServerSendMsg
 } = require("../socket/socketMessage")
 //
@@ -73,7 +69,7 @@ var Tank = function () {
 			ServerSendMsg(
 				ws,
 				MSG_TYPE_SERVER.MSG_SYNC_SERVER,
-				new SyncMsg('bullet_create', SYNC_SERVER_TYPE.BULLET_CREATE, refers)
+				new SyncMsg('bullet_create', SYNC_SERVER_TYPE.BULLET_ADD, refers)
 			);
 			if (!this.isAI) {
 				//通知客户端play 玩家子弹攻击音效
@@ -222,19 +218,6 @@ var PlayTank = function () {
 	this.protectedTime = 500;//保护时间
 	this.offsetX = 0;//坦克2与坦克1的距离
 	this.speed = 7;//坦克的速度
-	// this.distroy = function (ws, gameInstance, tankIndex) {
-	// 	this.isDestroyed = true;
-	// 	const crackType = CRACK_TYPE.CRACK_TYPE_TANK
-	// 	gameInstance.crackArray.push(new CrackAnimation(crackType, this));
-	// 	//客户端同步添加爆炸动画Obj
-	// 	ServerSendMsg(
-	// 		ws,
-	// 		MSG_TYPE_SERVER.MSG_SYNC_SERVER,
-	// 		new SyncMsg('add_crack_player', SYNC_SERVER_TYPE.CRACK_ADD, { crackType, tankType: this.type, tankIndex })
-	// 	);
-	// 	//客户端播放坦克销毁音频
-	// 	controlAudioPlay(ws, 'playerdestroy_audio', OPERA_AUDIO_TYPE.AUDIO_PLAYER_DESTORY, OPERA_AUDIO_TYPE.AUDIO_PLAY)
-	// };
 
 	this.renascenc = function (player, gameInstance) {
 		this.lives--;

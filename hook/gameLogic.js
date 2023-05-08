@@ -14,10 +14,9 @@ const {
     ServerSendMsg,
     DrawMsg, SyncMsg,
     MSG_TYPE_SERVER,
-    OPERA_DRAW_TYPE, SYNC_SERVER_TYPE, OPERA_CLEAR_TYPE
+    SYNC_SERVER_TYPE, OPERA_CLEAR_TYPE
 } = require("../socket/socketMessage")
 //
-
 
 //游戏循环控制
 const gameLoop = function (ws) {
@@ -104,8 +103,6 @@ const initObject = function (gameInstance) {
     gameInstance.homeProtectedTime = -1;
     gameInstance.propTime = 1000;
 };
-
-
 //初始化地图
 const initMap = function (gameInstance, level) {
     gameInstance.map.setMapLevel(level);
@@ -181,65 +178,8 @@ const addEnemyTank = function (ws, gameInstance) {
     let { maxEnemy, appearEnemy } = gameInstance;
     ServerSendMsg(
         ws,
-        MSG_TYPE_SERVER.MSG_OPERA_DRAW,
-        new DrawMsg('enemynum_clear', OPERA_DRAW_TYPE.ENEMYNUM_CLEAR, { maxEnemy, appearEnemy })
-    );
-};
-//绘制玩家坦克
-const drawPlayerTank = function (ws, gameInstance) {
-    // gameInstance.tankCtx.clearRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-    clearRectByCtxName(ws, OPERA_CLEAR_TYPE.TANKCTX_CLEAR)
-    //玩家坦克1绘制
-    if (gameInstance.player1.lives > 0) {
-        //gameInstance.player1.draw();
-        //坦克出生保护机制
-        if (gameInstance.player1.isProtected) {
-            gameInstance.player1.protectedTime--;
-            if (gameInstance.player1.protectedTime == 0) {
-                //console.log(false);
-                gameInstance.player1.isProtected = false;
-            }
-        }
-        let { dir, x, y, isProtected, protectedTime } = gameInstance.player1;
-        let refers = { dir, x, y, isProtected, protectedTime }
-        ServerSendMsg(
-            ws,
-            MSG_TYPE_SERVER.MSG_OPERA_DRAW,
-            new DrawMsg('player1_draw', OPERA_DRAW_TYPE.PLAYER1_DRAW, refers)
-        );
-
-    }
-    //玩家坦克2绘制
-    if (gameInstance.player2.lives > 0) {
-        // gameInstance.player2.draw();
-        //坦克出生保护机制
-        if (gameInstance.player2.isProtected) {
-            gameInstance.player2.protectedTime--;
-            if (gameInstance.player2.protectedTime == 0) {
-                gameInstance.player2.isProtected = false;
-            }
-        }
-        let { dir, x, y, isProtected, protectedTime } = gameInstance.player2;
-        let refers = { dir, x, y, isProtected, protectedTime }
-        ServerSendMsg(
-            ws,
-            MSG_TYPE_SERVER.MSG_OPERA_DRAW,
-            new DrawMsg('player2_draw', OPERA_DRAW_TYPE.PLAYER2_DRAW, refers)
-        );
-    }
-    drawLives(ws, gameInstance);//绘制坦克生命数
-
-};
-//绘制坦克生命数
-const drawLives = function (ws, gameInstance) {
-    // gameInstance.map.drawLives(gameInstance.player1.lives, 1);
-    // gameInstance.map.drawLives(gameInstance.player2.lives, 2);
-    let p1Lives = gameInstance.player1.lives;
-    let p2Lives = gameInstance.player2.lives;
-    ServerSendMsg(
-        ws,
-        MSG_TYPE_SERVER.MSG_OPERA_DRAW,
-        new DrawMsg('lives_draw', OPERA_DRAW_TYPE.LIVES_DRAW, { p1Lives, p2Lives })
+        MSG_TYPE_SERVER.MSG_OPERA_CLEAR,
+        new DrawMsg('enemynum_clear', OPERA_CLEAR_TYPE.ENEMYNUM_CLEAR, { maxEnemy, appearEnemy })
     );
 };
 //绘制子弹
@@ -354,73 +294,6 @@ const playerMove = function (ws, gameInstance, index, temp_dir, hit) {
         )
     );
 }
-//绘制爆炸
-const drawCracks = function (ws, gameInstance) {
-    if (gameInstance.crackArray != null && gameInstance.crackArray.length > 0) {
-        for (let i = 0; i < gameInstance.crackArray.length; i++) {
-            let crackObj = gameInstance.crackArray[i];
-            if (crackObj.isOver) {
-                gameInstance.crackArray.removeByIndex(i);
-                //同步数据到客户端
-                //清除已结束的crack
-                ServerSendMsg(
-                    ws,
-                    MSG_TYPE_SERVER.MSG_SYNC_SERVER,
-                    new SyncMsg('crack_remove', SYNC_SERVER_TYPE.CARCK_REMOVE, { removeArr: [i] })
-                );
-                i--;
-                if (crackObj.owner == gameInstance.player1) {
-                    gameInstance.player1.renascenc(1, gameInstance);
-                } else if (crackObj.owner == gameInstance.player2) {
-                    gameInstance.player2.renascenc(2, gameInstance);
-                }
-            } else {
-                //params(ws, crackIndex)
-                crackObj.draw(ws, i);
-            }
-        }
-    }
-};
-//键盘事件
-const keyEvent = function (gameInstance) {
-    //console.log(gameInstance.player1);
-    if (gameInstance.keys.contain(KEYBOARD.W)) {
-        gameInstance.player1.dir = UP;
-        gameInstance.player1.hit = false;
-        gameInstance.player1.move(gameInstance);
-    } else if (gameInstance.keys.contain(KEYBOARD.S)) {
-        gameInstance.player1.dir = DOWN;
-        gameInstance.player1.hit = false;
-        gameInstance.player1.move(gameInstance);
-    } else if (gameInstance.keys.contain(KEYBOARD.A)) {
-        gameInstance.player1.dir = LEFT;
-        gameInstance.player1.hit = false;
-        gameInstance.player1.move(gameInstance);
-    } else if (gameInstance.keys.contain(KEYBOARD.D)) {
-        gameInstance.player1.dir = RIGHT;
-        gameInstance.player1.hit = false;
-        gameInstance.player1.move(gameInstance);
-    }
-
-    if (gameInstance.keys.contain(KEYBOARD.UP)) {
-        gameInstance.player2.dir = UP;
-        gameInstance.player2.hit = false;
-        gameInstance.player2.move(gameInstance);
-    } else if (gameInstance.keys.contain(KEYBOARD.DOWN)) {
-        gameInstance.player2.dir = DOWN;
-        gameInstance.player2.hit = false;
-        gameInstance.player2.move(gameInstance);
-    } else if (gameInstance.keys.contain(KEYBOARD.LEFT)) {
-        gameInstance.player2.dir = LEFT;
-        gameInstance.player2.hit = false;
-        gameInstance.player2.move(gameInstance);
-    } else if (gameInstance.keys.contain(KEYBOARD.RIGHT)) {
-        gameInstance.player2.dir = RIGHT;
-        gameInstance.player2.hit = false;
-        gameInstance.player2.move(gameInstance);
-    }
-
-};
 //绘制道具
 const drawProp = function (ws, gameInstance) {
     var rand = Math.random();

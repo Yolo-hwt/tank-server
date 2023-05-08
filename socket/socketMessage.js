@@ -7,53 +7,31 @@ const MSG_TYPE_SERVER = {
 }
 const OPERA_CLEAR_TYPE = {
     TANKCTX_CLEAR: 'tanctx_clear',
-    OVERCTX_CLEAR: "overctx_clear"
+    OVERCTX_CLEAR: "overctx_clear",
+    ENEMYNUM_CLEAR: 'enemynum_clear',
 }
 //绘制操作类型，以绘制目标作为区分
 //对应drawMsg中的drawType
 const OPERA_DRAW_TYPE = {
-    MENU_DRAW: 'menu_draw',
-    STAGE_DRAW: 'stage_draw',
-    PLAYER1_DRAW: 'player1_draw',
-    PLAYER2_DRAW: 'player2_draw',
-    LIVES_DRAW: 'lives_draw',
-    ENEMYNUM_CLEAR: 'enemynum_clear',
-    ENEMYTANK_DRAW: 'enemytank_draw',
-    TANK_BULLET_DRAW: 'tank_bullet_draw',
-    PLAYER_BULLET_DRAW: 'player_bullet_draw',
-    TANKBEFORE_DRAW: 'tankbefore_draw',
-    TANKAFTER_DRAW: 'tankafter_draw',
-    CRACK_DRAW: "crackanimation_draw",
-    BULLET_DRAW: "bullet_draw",
-    PROP_DRAW: "prop_draw",
-    OVER_DRAW: "over_draw",
-    HOMEHIT_DRAW: "homehit_draw"
+
 }
 
 //数据同步操作
 //对应SyncMsg中的syncType
 const SYNC_SERVER_TYPE = {
     BASIC_DATA_SERVER: "basic_data_server",
+    CRACK_ADD: "crack_add",
+    PROP_ADD: "prop_add",
+    ENEMYTANK_ADD: 'add_enemyTank',
+    BULLET_ADD: 'bullet_add',
+    MAP_UPDATE: "map_update",
     PLAYER_MOVE: "player_move",
     BULLET_MOVE: 'bullet_move',
     AITANK_MOVE: "aitank_move",
     PLAYER_RENASCENC: "player_renascenc",
     SKIP_LEVEL: "skip_level",
-    GAME_STATE: "game_state",
-    PLAYER1_ISPROTECTED: 'player1_isprotected',
-    PLAYER2_ISPROTECTED: 'player2_isprotected',
-    ENEMYTANK_ADD: 'add_enemyTank',
     ENEMYTANK_REMOVE: 'remove_enemyTank',
     BULLET_REMOVE: 'remove_bullet',
-    BULLET_CREATE: 'bullet_create',
-    MAP_UPDATE: "map_update",
-    CRACK_ADD_TANK: "add_crack_tank",
-    CRACK_ADD_PLAYER: "add_crack_player",
-    CRACK_ADD_BULLET: "add_crack_bullet",
-    CRACK_ADD: "crack_add",
-    CARCK_REMOVE: "carck_remove",
-    PROP_ADD: "prop_add",
-    KEYS_MANAGE: "keys_manage"
 }
 
 //音频播放操作

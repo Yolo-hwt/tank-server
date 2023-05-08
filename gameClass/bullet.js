@@ -1,20 +1,16 @@
 //全局变量引入
-const { POS, DIRECT, PICTURES, BULLET_TYPE, CRACK_TYPE, SOUNDS } = require("../hook/globalParams");
+const { DIRECT, BULLET_TYPE, CRACK_TYPE } = require("../hook/globalParams");
 const { UP, DOWN, LEFT, RIGHT } = DIRECT;
 // const { RESOURCE_IMAGE } = PICTURES();
 const { BULLET_TYPE_ENEMY, BULLET_TYPE_PLAYER } = BULLET_TYPE;
-const { CRACK_TYPE_BULLET } = CRACK_TYPE;
-const { BULLET_DESTROY_AUDIO } = SOUNDS;
 //工具函数引入
-const { CrackAnimation } = require("../utils/crackAnimation")
 const { CheckIntersect, bulletMapCollision } = require("../utils/Collision")
 //socketMessage引入
 const {
-	ServerSendMsg, SyncMsg, DrawMsg,
+	ServerSendMsg, SyncMsg,
 	OPERA_AUDIO_TYPE,
 	MSG_TYPE_SERVER,
 	SYNC_SERVER_TYPE,
-	OPERA_DRAW_TYPE
 } = require("../socket/socketMessage")
 //gameLogic方法引入
 const { controlAudioPlay } = require("../hook/controlClientLogic")
@@ -34,23 +30,14 @@ const Bullet = function (owner, type, dir) {
 	//根据子弹数组中的index通知客户端绘制
 	this.draw = function (ws, gameInstance, bulletIndex) {
 		this.bulletIndex = bulletIndex;
-		//通知客户端绘制子弹
-		//this.ctx.drawImage(RESOURCE_IMAGE, POS["bullet"][0] + this.dir * this.size, POS["bullet"][1], this.size, this.size, this.x, this.y, this.size, this.size);
-		// const { dir, x, y } = this;
-		// let refers = { dir, x, y, bulletIndex };
-		// ServerSendMsg(
-		// 	ws,
-		// 	MSG_TYPE_SERVER.MSG_OPERA_DRAW,
-		// 	new DrawMsg('bullet_draw', OPERA_DRAW_TYPE.BULLET_DRAW, refers)
-		// );
 
 		this.move(gameInstance, ws, bulletIndex);
 		//同步客户端子弹位置
 		const refers = { bulletIndex, x: this.x, y: this.y }
 		ServerSendMsg(
 			ws,
-			MSG_TYPE_SERVER.MSG_OPERA_DRAW,
-			new DrawMsg('bullet_draw', OPERA_DRAW_TYPE.BULLET_DRAW, refers)
+			MSG_TYPE_SERVER.MSG_SYNC_SERVER,
+			new SyncMsg('bullet_move', SYNC_SERVER_TYPE.BULLET_MOVE, refers)
 		);
 	};
 

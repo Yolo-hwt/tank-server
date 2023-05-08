@@ -1,7 +1,6 @@
 //全局变量引入
-const { SCREEN, PICTURES, POS, STATE } = require("../hook/globalParams");
+const { SCREEN, STATE } = require("../hook/globalParams");
 const { SCREEN_HEIGHT, SCREEN_WIDTH } = SCREEN;
-// const { MENU_IMAGE, RESOURCE_IMAGE } = PICTURES();
 //相关类引入
 const { SelectTank } = require('./tank')
 //服务器通信消息引入
@@ -9,7 +8,6 @@ const {
 	ServerSendMsg,
 	SyncMsg, DrawMsg,
 	MSG_TYPE_SERVER,
-	OPERA_DRAW_TYPE,
 	SYNC_SERVER_TYPE
 } = require("../socket/socketMessage")
 /**

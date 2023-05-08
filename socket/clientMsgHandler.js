@@ -15,13 +15,10 @@ const { STATE, KEYBOARD, DIRECT } = require("../hook/globalParams")
 const {
     GAME_STATE_MENU,
     GAME_STATE_INIT,
-    GAME_STATE_OVER,
     GAME_STATE_START,
-    GAME_STATE_WIN,
 } = STATE;
-const { UP, DOWN, LEFT, RIGHT } = DIRECT
 //引入gameLogic方法
-const { preLevel, nextLevel, initMap, initObject } = require("../hook/gameLogic")
+const { preLevel, nextLevel, initObject } = require("../hook/gameLogic")
 
 /**************** HANDLERS *********************** */
 //根据客户端发送的msg来运行游戏逻辑
@@ -105,12 +102,13 @@ const syncDataMsgHandler = function (ws, data) {
             gameInstance["player" + index]["protectedTime"] = 0;
             break;
         }
-        case SYNC_CLIENT_TYPE.OVERANIMATE_ISOK: {
+        case SYNC_CLIENT_TYPE.OVERANIMATE_ISOK: {//结束游戏动画结束
+            gameInstance.level = 1;
             initObject(gameInstance);
             gameInstance.gameState = GAME_STATE_MENU;
             break;
         }
-        case SYNC_CLIENT_TYPE.ENEMY_ISAPPEAR: {
+        case SYNC_CLIENT_TYPE.ENEMY_ISAPPEAR: {//敌方坦克appear
             const { index, value } = refers;
             // console.log(index, gameInstance.enemyArray);
             gameInstance.enemyArray[index].isAppear = value;
