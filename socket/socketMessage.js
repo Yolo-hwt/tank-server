@@ -32,6 +32,7 @@ const SYNC_SERVER_TYPE = {
     SKIP_LEVEL: "skip_level",
     ENEMYTANK_REMOVE: 'remove_enemyTank',
     BULLET_REMOVE: 'remove_bullet',
+    PLAYER_PROTECTED: "player_protected"
 }
 
 //音频播放操作

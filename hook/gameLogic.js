@@ -8,6 +8,7 @@ const { Menu } = require("../gameClass/menu");
 const { Stage } = require("../gameClass/stage");
 const { Map } = require("../gameClass/map");
 const { PlayTank, EnemyOne, EnemyTwo, EnemyThree } = require("../gameClass/tank");
+const { Prop } = require("../gameClass/prop");
 
 //服务器通信消息引入
 const {
@@ -68,7 +69,7 @@ const gameLoop = function (ws) {
             }
         case GAME_STATE_WIN:
             //客户端检测到游戏状态为win自动跳到下一关
-            nextLevel(gameInstance);
+            nextLevel(ws, gameInstance);
             break;
         case GAME_STATE_OVER:
             //gameOver(gameInstance);
@@ -101,7 +102,7 @@ const initObject = function (gameInstance) {
     //gameInstance.overCtx.clearRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
     gameInstance.emenyStopTime = 0;
     gameInstance.homeProtectedTime = -1;
-    gameInstance.propTime = 1000;
+    gameInstance.propTime = 600;//1000
 };
 //初始化地图
 const initMap = function (gameInstance, level) {
@@ -115,18 +116,18 @@ const drawAll = function (ws, gameInstance) {
     drawBullets(ws, gameInstance);
     // drawCracks(ws, gameInstance);
     keyEventForPlayerMove(ws, gameInstance);
-    // //道具绘制
-    // if (gameInstance.propTime <= 0) {
-    //     drawProp(ws, gameInstance);
-    // } else {
-    //     gameInstance.propTime--;
-    // }
-    // if (gameInstance.homeProtectedTime > 0) {
-    //     gameInstance.homeProtectedTime--;
-    // } else if (gameInstance.homeProtectedTime == 0) {
-    //     gameInstance.homeProtectedTime = -1;
-    //     homeNoProtected();
-    // }
+    //道具绘制
+    if (gameInstance.propTime <= 0) {
+        drawProp(ws, gameInstance);
+    } else {
+        gameInstance.propTime--;
+    }
+    if (gameInstance.homeProtectedTime > 0) {
+        gameInstance.homeProtectedTime--;
+    } else if (gameInstance.homeProtectedTime == 0) {
+        gameInstance.homeProtectedTime = -1;
+        homeNoProtected(ws, gameInstance);
+    }
 };
 //添加和绘制地方坦克
 const addAndDrawEnemyTanks = function (ws, gameInstance) {
@@ -297,29 +298,33 @@ const playerMove = function (ws, gameInstance, index, temp_dir, hit) {
 //绘制道具
 const drawProp = function (ws, gameInstance) {
     var rand = Math.random();
-    if (rand < 0.4 && gameInstance.prop == null) {
+    //rand<0.4
+    if (rand < 0.6 && gameInstance.prop == null) {
         gameInstance.prop = new Prop(gameInstance);
+        gameInstance.prop.init();
+        const { type, x, y } = gameInstance.prop;
         //通知客户端产生prop道具
         ServerSendMsg(
             ws,
             MSG_TYPE_SERVER.MSG_SYNC_SERVER,
-            new SyncMsg('prop_add', SYNC_SERVER_TYPE.PROP_ADD)
+            new SyncMsg('prop_add', SYNC_SERVER_TYPE.PROP_ADD, { type, x, y })
         );
-        gameInstance.prop.init(ws);
     }
     if (gameInstance.prop != null) {
         gameInstance.prop.draw(ws, gameInstance);
         if (gameInstance.prop.isDestroyed) {
             gameInstance.prop = null;
+            // propTime<1000
             gameInstance.propTime = 1000;
         }
     }
 };
 //home protected
-const homeNoProtected = function () {
+const homeNoProtected = function (ws, gameInstance) {
     //home周围的墙体
     var mapChangeIndex = [[23, 11], [23, 12], [23, 13], [23, 14], [24, 11], [24, 14], [25, 11], [25, 14]];
-    //gameInstance.map.updateMap(mapChangeIndex, WALL);
+    gameInstance.map.updateMap(mapChangeIndex, WALL);
+    //通知客户端更新地图
     let indexArr = mapChangeIndex;
     let target = WALL
     ServerSendMsg(
@@ -329,7 +334,7 @@ const homeNoProtected = function () {
     );
 };
 //下一关
-const nextLevel = function (gameInstance) {
+const nextLevel = function (ws, gameInstance) {
     gameInstance.level++;
     if (gameInstance.level == 22) {
         gameInstance.level = 1;
@@ -338,13 +343,22 @@ const nextLevel = function (gameInstance) {
     //只有一个玩家
     if (gameInstance.menu.playNum == 1) {
         gameInstance.player2.lives = 0;
+        ServerSendMsg(
+            ws,
+            MSG_TYPE_SERVER.MSG_SYNC_SERVER,
+            new SyncMsg(
+                'player2_lives',
+                SYNC_SERVER_TYPE.BASIC_DATA_SERVER,
+                { level: 2, target: ["player2", "lives"], value: 0 }
+            )
+        );
     }
     gameInstance.stage.init(gameInstance.level);
     gameInstance.gameState = GAME_STATE_INIT;
 
 };
 //上一关卡
-const preLevel = function (gameInstance) {
+const preLevel = function (ws, gameInstance) {
     gameInstance.level--;
     if (gameInstance.level == 0) {
         gameInstance.level = 1;
@@ -353,6 +367,15 @@ const preLevel = function (gameInstance) {
     //只有一个玩家
     if (gameInstance.menu.playNum == 1) {
         gameInstance.player2.lives = 0;
+        ServerSendMsg(
+            ws,
+            MSG_TYPE_SERVER.MSG_SYNC_SERVER,
+            new SyncMsg(
+                'player2_lives',
+                SYNC_SERVER_TYPE.BASIC_DATA_SERVER,
+                { level: 2, target: ["player2", "lives"], value: 0 }
+            )
+        );
     }
     gameInstance.stage.init(gameInstance.level);
     gameInstance.gameState = GAME_STATE_INIT;

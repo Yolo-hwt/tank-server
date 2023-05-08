@@ -36,7 +36,7 @@ class GameInstance {
         this.overY = 384;
         this.emenyStopTime = 0; //敌方坦克停止时间
         this.homeProtectedTime = -1;
-        this.propTime = 300;
+        this.propTime = 300;//300
 
 
     }

@@ -203,7 +203,7 @@ const keydown_when_GAME_STATE_START = function (code, gameInstance, ws) {
         switch (code) {
             //关卡管理
             case KEYBOARD.N: {//下一关
-                nextLevel(gameInstance);
+                nextLevel(ws, gameInstance);
                 ServerSendMsg(
                     ws,
                     MSG_TYPE_SERVER.MSG_SYNC_SERVER,
@@ -212,7 +212,7 @@ const keydown_when_GAME_STATE_START = function (code, gameInstance, ws) {
                 break;
             }
             case KEYBOARD.P: {//上一关
-                preLevel(gameInstance);
+                preLevel(ws, gameInstance);
                 ServerSendMsg(
                     ws,
                     MSG_TYPE_SERVER.MSG_SYNC_SERVER,
