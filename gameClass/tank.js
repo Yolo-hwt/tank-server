@@ -217,7 +217,7 @@ var PlayTank = function () {
 	this.isProtected = true;//是否受保护
 	this.protectedTime = 500;//保护时间
 	this.offsetX = 0;//坦克2与坦克1的距离
-	this.speed = 7;//坦克的速度
+	this.speed = 5;//坦克的速度
 
 	this.renascenc = function (player, gameInstance) {
 		this.lives--;
@@ -265,14 +265,14 @@ var EnemyOne = function () {
 			this.move(gameInstance);
 			//同步客户端坦克位置
 			//将移动后坦克位置数据同步客户端
-			const { dir, x, y } = this;
+			const { dir, x, y, lives } = this;
 			ServerSendMsg(
 				ws,
 				MSG_TYPE_SERVER.MSG_SYNC_SERVER,
 				new SyncMsg(
 					'aitank_move',
 					SYNC_SERVER_TYPE.AITANK_MOVE,
-					{ index: tankIndex, dir, x, y }
+					{ index: tankIndex, dir, x, y, lives }
 				)
 			);
 		}
@@ -307,14 +307,14 @@ var EnemyTwo = function () {
 			this.move(gameInstance);
 			//同步客户端坦克位置
 			//将移动后坦克位置数据同步客户端
-			const { dir, x, y } = this;
+			const { dir, x, y, lives } = this;
 			ServerSendMsg(
 				ws,
 				MSG_TYPE_SERVER.MSG_SYNC_SERVER,
 				new SyncMsg(
 					'aitank_move',
 					SYNC_SERVER_TYPE.AITANK_MOVE,
-					{ index: tankIndex, dir, x, y }
+					{ index: tankIndex, dir, x, y, lives }
 				)
 			);
 		}
@@ -350,14 +350,14 @@ var EnemyThree = function () {
 			this.move(gameInstance);
 			//同步客户端坦克位置
 			//将移动后坦克位置数据同步客户端
-			const { dir, x, y } = this;
+			const { dir, x, y, lives } = this;
 			ServerSendMsg(
 				ws,
 				MSG_TYPE_SERVER.MSG_SYNC_SERVER,
 				new SyncMsg(
 					'aitank_move',
 					SYNC_SERVER_TYPE.AITANK_MOVE,
-					{ index: tankIndex, dir, x, y }
+					{ index: tankIndex, dir, x, y, lives }
 				)
 			);
 		}
