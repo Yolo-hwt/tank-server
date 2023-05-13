@@ -80,12 +80,14 @@ const keyEventHandler = function (ws, data) {
 }
 //客户端同步数据到服务器
 const syncDataMsgHandler = function (ws, data) {
+    // console.log(ws);
     let gameInstance = ws?.gameInstance;
     const syncType = data.syncType;
     const { refers } = data;
     switch (syncType) {
         case SYNC_CLIENT_TYPE.STAGE_ISREADY: {//客户端stage就绪
             const isReady = refers.isReady ?? false;
+            // console.log(gameInstance);
             gameInstance.stage.isReady = isReady;
             gameInstance.gameState = GAME_STATE_START;
             //同步客户端数据
@@ -111,7 +113,9 @@ const syncDataMsgHandler = function (ws, data) {
         case SYNC_CLIENT_TYPE.ENEMY_ISAPPEAR: {//敌方坦克appear
             const { index, value } = refers;
             // console.log(index, gameInstance.enemyArray);
-            gameInstance.enemyArray[index].isAppear = value;
+            if (gameInstance.enemyArray[index]) {
+                gameInstance.enemyArray[index].isAppear = value;
+            }
             break
         }
         default:
