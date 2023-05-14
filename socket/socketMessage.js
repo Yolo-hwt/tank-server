@@ -16,7 +16,6 @@ const OPERA_CLEAR_TYPE = {
 const OPERA_DRAW_TYPE = {
 
 }
-
 //数据同步操作
 //对应SyncMsg中的syncType
 const SYNC_SERVER_TYPE = {
@@ -35,7 +34,6 @@ const SYNC_SERVER_TYPE = {
     BULLET_REMOVE: 'remove_bullet',
     PLAYER_PROTECTED: "player_protected"
 }
-
 //音频播放操作
 //对应audioType/Mode
 const OPERA_AUDIO_TYPE = {
@@ -49,13 +47,19 @@ const OPERA_AUDIO_TYPE = {
     AUDIO_BULLET_DESTORY: 'audio_bulletdestory',
     AUDIO_PROP: "audio_prop",
 }
+//多人游戏标识类型
+const MULTI_SERVER_TYPE = {
+    ADVENTURE_MATCH_OK: "adventure_match_ok",
+    ADVENTURE_MATCH_NO: "adventure_match_no",
+}
 
 /**************客户端消息类型**/
 const MSG_TYPE_CLIENT = {
     MSG_NORMAL: 'normal',   //普通消息
     MSG_SYNC: 'syncdata',   //同步客户端数据到服务器
     MSG_BEAT: 'heartbeat',  //心跳包
-    MSG_KEY: 'keyevent'     //键盘事件
+    MSG_KEY: 'keyevent',     //键盘事件
+    MSG_MULTI: 'multiplayer',//多人游戏事件
 }
 //键盘事件类型，按下或回上
 const KEY_EVENT_TYPE = {
@@ -70,11 +74,12 @@ const SYNC_CLIENT_TYPE = {
     OVERANIMATE_ISOK: "over_animation_is_ok",
     ENEMY_ISAPPEAR: "enemy_isappear",
 }
-//多人游戏标识类型
-const MULTI_SIGN_TYPE = {
-    ADVENTURE_MATCH_OK: "adventure_match_ok",
-    ADVENTURE_MATCH_NO: "adventure_match_no",
+//多人游戏标识
+const MULTI_CLIENT_TYPE = {
+    ADVENTURE_CLIENT_READY: "adventure_client_ok",
+    ADVENTURE_CLIENT_STAGEISREADY: "adventure_client_stage_ok",
 }
+
 
 
 //消息实体
@@ -119,7 +124,13 @@ const MultiMsg = function (msg, multiType, signType, refers = {}) {
 //服务器发送消息
 const ServerSendMsg = function (ws, type, data) {
     let msgContent = new SocketMessage("server", "server", type, data);
-    ws.send(JSON.stringify(msgContent))
+    if (Array.isArray(ws)) {
+        for (let i = 0; i < ws.length; i++) {
+            ws[i].send(JSON.stringify(msgContent))
+        }
+    } else {
+        ws.send(JSON.stringify(msgContent))
+    }
 }
 
 module.exports = {
@@ -131,7 +142,8 @@ module.exports = {
     SYNC_SERVER_TYPE,
     OPERA_AUDIO_TYPE,
     OPERA_CLEAR_TYPE,
-    MULTI_SIGN_TYPE,
+    MULTI_SERVER_TYPE,
+    MULTI_CLIENT_TYPE,
     NormalMsg,
     DrawMsg,
     SyncMsg,

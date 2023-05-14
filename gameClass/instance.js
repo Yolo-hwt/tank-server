@@ -5,7 +5,7 @@ const { LOCAL_GAME, ONLINE_GAME } = GAME_MODE;
 class GameInstance {
     constructor(name) {
         //客户端名称
-        this.clientName = name;
+        this.clientName = name ?? "test";
         //游戏模式
         this.gameMode = ONLINE_GAME;
         //本地游戏循环计时器id

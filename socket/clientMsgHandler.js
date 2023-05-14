@@ -6,12 +6,13 @@ const {
     KEY_EVENT_TYPE,
     SYNC_SERVER_TYPE,
     SYNC_CLIENT_TYPE,
-    MSG_TYPE_SERVER
+    MSG_TYPE_SERVER,
+    MULTI_CLIENT_TYPE
 } = require("./socketMessage")
-const { MSG_BEAT, MSG_KEY, MSG_NORMAL, MSG_SYNC } = MSG_TYPE_CLIENT
+const { MSG_BEAT, MSG_KEY, MSG_NORMAL, MSG_SYNC, MSG_MULTI } = MSG_TYPE_CLIENT
 const { KEY_EVENT_UP, KEY_EVENT_DOWN } = KEY_EVENT_TYPE
 //全局参数引入
-const { STATE, KEYBOARD, DIRECT } = require("../hook/globalParams")
+const { STATE, KEYBOARD, GAME_MODE } = require("../hook/globalParams")
 const {
     GAME_STATE_MENU,
     GAME_STATE_INIT,
@@ -26,13 +27,19 @@ const { preLevel, nextLevel, initObject } = require("../hook/gameLogic")
 const clientMsgHandler = function (cMsg, ws) {
     const type = cMsg.type ?? "default";
     const data = cMsg.data ?? "";
+    let gameInstance = null;
+    if (Array.isArray(ws)) {
+        gameInstance = ws[0].gameInstance;
+    } else {
+        gameInstance = ws.gameInstance;
+    }
     switch (type) {
         case MSG_NORMAL: {
             normalMsgHandler(data);
             break;
         }
         case MSG_SYNC: {
-            syncDataMsgHandler(ws, data);
+            syncDataMsgHandler(ws, data, gameInstance);
             break;
         }
         case MSG_BEAT: {
@@ -40,7 +47,11 @@ const clientMsgHandler = function (cMsg, ws) {
             break;
         }
         case MSG_KEY: {
-            keyEventHandler(ws, data);
+            keyEventHandler(ws, data, gameInstance);
+            break;
+        }
+        case MSG_MULTI: {
+            multiMsgHandler(ws, data, gameInstance);
             break;
         }
         //
@@ -60,9 +71,8 @@ const heartbeatMsgHandler = function (data) {
     console.log("get client heart-beat msg:", data);
 }
 //键盘事件处理
-const keyEventHandler = function (ws, data) {
+const keyEventHandler = function (ws, data, gameInstance) {
     const keyType = data.keyType ?? "default"
-    let gameInstance = ws.gameInstance;
     switch (keyType) {
         case KEY_EVENT_DOWN: {
             keydownMsgHandler(ws, gameInstance, data)
@@ -79,9 +89,8 @@ const keyEventHandler = function (ws, data) {
     }
 }
 //客户端同步数据到服务器
-const syncDataMsgHandler = function (ws, data) {
+const syncDataMsgHandler = function (ws, data, gameInstance) {
     // console.log(ws);
-    let gameInstance = ws?.gameInstance;
     const syncType = data.syncType;
     const { refers } = data;
     switch (syncType) {
@@ -146,7 +155,6 @@ const keydownMsgHandler = function (ws, gameInstance, data) {
         }
     }
 }
-
 /******************** keydown event 辅助函数 **************** */
 const keydown_when_GAME_STATE_MENU = function (code, gameInstance, ws) {
     if (code == KEYBOARD.ENTER) {
@@ -233,8 +241,61 @@ const keydown_when_GAME_STATE_START = function (code, gameInstance, ws) {
 
 
 }
+//多人游戏事件
+const multiMsgHandler = function (ws, data, gameInstance) {
+    const { multiType, signType } = data;
+    switch (multiType) {
+        case GAME_MODE.ADVENTURE_GAME: {
+            adventureGameHandler(ws, signType, gameInstance);
+            break;
+        }
+        case GAME_MODE.MULTIPLAER_GAME: {
+            multiGameHandler(ws, signType);
+            break;
+        }
 
+        default:
+            break;
+    }
+}
+/*********************multi event 辅助函数 ***********************/
+const adventureGameHandler = function (ws, signType, gameInstance) {
+    switch (signType) {
+        case MULTI_CLIENT_TYPE.ADVENTURE_CLIENT_READY: {
+            //设置对应客户端连接状态为游戏就绪
+            ws.adventureClientIsReady = true;
+            break;
+        }
+        case MULTI_CLIENT_TYPE.ADVENTURE_CLIENT_STAGEISREADY: {
+            //设置对应客户端stage为绘制完毕
+            ws.adventureDrawStageIsReady = true;
+            if (ws.t.adventureStageIsAllReady(ws.name)) {
+                gameInstance.gameState = GAME_STATE_START;
+                let wslist = ws.t.adventurePlayerMap.get(ws.name).playerWs;
+                // //更改各自的侦听msg处理程序
+                // for (let i = 0; i < wslist.length; i++) {
+                //     wslist[i].on('message', function (e) { ws.t.adventureMessageHandler(e, wslist) })
+                // }
+                //同步客户端数据，开始游戏
+                ServerSendMsg(
+                    wslist,
+                    MSG_TYPE_SERVER.MSG_SYNC_SERVER,
+                    new SyncMsg(
+                        'game_state',
+                        SYNC_SERVER_TYPE.BASIC_DATA_SERVER,
+                        { level: 1, target: ["gameState"], value: GAME_STATE_START }
+                    )
+                );
+            }
+            break;
+        }
+        default:
+            break;
+    }
+}
+const multiGameHandler = function (ws, signType) {
 
+}
 module.exports = {
     clientMsgHandler,
 }

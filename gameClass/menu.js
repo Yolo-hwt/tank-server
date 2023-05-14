@@ -32,7 +32,18 @@ var Menu = function () {
 			new SyncMsg('game_state', SYNC_SERVER_TYPE.BASIC_DATA_SERVER, { level: 1, target: ["gameState"], value: STATE.GAME_STATE_MENU })
 		);
 	};
+	this.drawAdventure = function (wslist, gameInstance) {
+		gameInstance.gameState = STATE.GAME_STATE_INIT;
+		//通知客户端修改游戏状态为GAME_STATE_MENU
+		for (let i = 0; i < wslist.length; i++) {
+			ServerSendMsg(
+				wslist[i],
+				MSG_TYPE_SERVER.MSG_SYNC_SERVER,
+				new SyncMsg('game_state', SYNC_SERVER_TYPE.BASIC_DATA_SERVER, { level: 1, target: ["gameState"], value: STATE.GAME_STATE_INIT })
+			);
+		}
 
+	};
 	/**
 	 * 选择坦克上下移动
 	 */

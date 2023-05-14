@@ -5,13 +5,18 @@ class WebSocketServer extends WebSocket.Server {
     constructor() {
         super(...arguments);
         this.webSocketClient = {}//存放已连接的客户端
+        // key:name;
+        // value:{ isReady: false, players: [player1, player2], playerWs: [clients[name], client],curPlayerIndex: 0, partnerIndex: 1 }
         this.adventurePlayerMap = new Map();//存放双人游戏匹配到的客户端
         this.multiplayerMap = new Map();//存放四人游戏匹配到的客户端
+
     }
 
     set ws(val) {//代理当前的ws，赋值时将其初始化
         //即，将当前ws设置为val(新的一个连接ws)，并将val.t指向this(WebSocketServer)
-        this._ws = val
+        this._ws = val;
+        val.adventureClientIsReady = false;//标识参与双人冒险的客户端是否已经准备好
+        val.adventureDrawStageIsReady = false;//标识客户端stage绘制完毕
         val.t = this;
         val.on('error', this.errorHandler)
         val.on('close', this.closeHandler)
@@ -33,10 +38,15 @@ class WebSocketServer extends WebSocket.Server {
         const cmsg = this.t.getMsg(e);
         // console.log(cmsg);
         const name = cmsg.name ?? "";
-        //此处无法直接通过this.webSocketClient访问是因为此时的this是ws
-        clientMsgHandler(cmsg, this.t.webSocketClient[name]);
+        const wslist = this.t.adventurePlayerMap.get(name)?.playerWs;
+        const ws = this.t.webSocketClient[name];
+        if (this.t.adventureStageIsAllReady(name)) {
+            clientMsgHandler(cmsg, wslist);
+        } else {
+            //此处无法直接通过this.webSocketClient访问是因为此时的this是ws
+            clientMsgHandler(cmsg, ws);
+        }
     }
-
     errorHandler(e) {
         this.t.removeClient(this)
         console.info('客户端出错')
@@ -77,21 +87,44 @@ class WebSocketServer extends WebSocket.Server {
         return this.adventurePlayerMap;
     }
     //adventure players
-    addAdventure(nameArr) {//以客户端name为key，匹配总数组为value
-        for (let i = 0; i < nameArr.length; i++) {
-            this.adventurePlayerMap.set(nameArr[i], nameArr.slice());
-        }
+    addAdventure(player, value) {
+        this.adventurePlayerMap.set(player, value);
     }
     removeAdventure(name) {
-        let players = this.adventurePlayerMap.get(name);
-        for (let i = 0; i < players.length; i++) {
-            if (players[i] == name) {
-                this.adventurePlayerMap.delete(players[i]);
-            } else {
-                //因为只有两个玩家，某一方下线则仅剩另一方为一个数组
-                this.adventurePlayerMap.set(players[i], [players[i]]);
+        let playerObj = this.adventurePlayerMap.get(name);
+        if (playerObj) {
+            let { players, curPlayerIndex, partnerIndex } = playerObj
+            this.adventurePlayerMap.delete(players[curPlayerIndex]);
+            //更新partner
+            const partnerName = players[partnerIndex];
+            let partnerObj = this.adventurePlayerMap.get(partnerName);
+            if (partnerObj) {
+                //移除name后其pantner也对应改变
+                const newVal = { players: [partnerName], curPlayerIndex: 0, partnerIndex: 0 };
+                newVal.isReady = partnerObj.isReady;
+                this.adventurePlayerMap.set(partnerName, newVal);
             }
         }
+    }
+    adventurePlayersIsAllReady(name) {
+        const playerWs = this.webSocketClient[name];
+        const playerObj = this.adventurePlayerMap.get(name);
+        const { players, partnerIndex } = playerObj;
+        const partnerWs = this.webSocketClient[players[partnerIndex]];
+        if (playerWs && partnerWs) {
+            return playerWs.adventureClientIsReady && partnerWs.adventureClientIsReady;
+        }
+        return false;
+    }
+    adventureStageIsAllReady(name) {
+        const playerWs = this.webSocketClient[name];
+        const playerObj = this.adventurePlayerMap.get(name);
+        const { players, partnerIndex } = playerObj;
+        const partnerWs = this.webSocketClient[players[partnerIndex]];
+        if (playerWs && partnerWs) {
+            return playerWs.adventureDrawStageIsReady && partnerWs.adventureDrawStageIsReady;
+        }
+        return false;
     }
 }//webSocketServer
 

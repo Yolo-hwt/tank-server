@@ -107,8 +107,6 @@ const initObject = function (gameInstance) {
 //初始化地图
 const initMap = function (gameInstance, level) {
     gameInstance.map.setMapLevel(level);
-    //gameInstance.map.draw(maxEnemy);
-    //drawLives(gameInstance, { p1Lives, p2Lives });
 };
 //绘制所有
 const drawAll = function (ws, gameInstance) {
@@ -388,6 +386,7 @@ module.exports = {
     preLevel,
     nextLevel,
     initMap,
+    drawAll
 }
 
 
