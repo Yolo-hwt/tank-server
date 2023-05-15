@@ -27,8 +27,8 @@ class GameInstance {
         this.crackArray = []; //爆炸数组
         this.gameState = GAME_STATE_MENU; //默认菜单状态
         this.level = 1; //默认关卡等级
-        this.maxEnemy = 20; //敌方坦克总数
-        this.maxAppearEnemy = 5; //屏幕上一起出现的最大数
+        this.maxEnemy = 20; //敌方坦克总数//20
+        this.maxAppearEnemy = 5; //屏幕上一起出现的最大数//5
         this.appearEnemy = 0; //已出现的敌方坦克
         this.mainframe = 0;
         this.isGameOver = false; //游戏结束标识
@@ -37,9 +37,6 @@ class GameInstance {
         this.emenyStopTime = 0; //敌方坦克停止时间
         this.homeProtectedTime = -1;
         this.propTime = 300;//300
-
-
     }
-
 }
 module.exports = { GameInstance };

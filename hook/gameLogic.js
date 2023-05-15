@@ -1,4 +1,4 @@
-const { DIRECT, ENEMY_LOCATION, KEYBOARD, TAGS, STATE, POS } = require("./globalParams");
+const { DIRECT, ENEMY_LOCATION, KEYBOARD, TAGS, STATE, POS, GAME_MODE } = require("./globalParams");
 const { UP, DOWN, LEFT, RIGHT } = DIRECT
 const { WALL } = TAGS
 const { GAME_STATE_MENU, GAME_STATE_INIT, GAME_STATE_START, GAME_STATE_WIN, GAME_STATE_OVER } = STATE
@@ -189,6 +189,9 @@ const drawBullets = function (ws, gameInstance) {
             if (bulletObj.isDestroyed) {
                 //子弹宿主对象，
                 bulletObj.owner.isShooting = false;
+                if (!bulletObj.owner.isAI) {
+                    bulletObj.owner.shootNum--;
+                }
                 gameInstance.bulletArray.removeByIndex(i);
                 //同步数据到客户端
                 //清除已被摧毁的子弹
@@ -333,11 +336,21 @@ const homeNoProtected = function (ws, gameInstance) {
 };
 //下一关
 const nextLevel = function (ws, gameInstance) {
+    //重置客户端的stage is ready 状态
+    if (Array.isArray(ws)) {
+        for (let i = 0; i < ws.length; i++) {
+            ws[i].adventureDrawStageIsReady = false;
+        }
+    }
     gameInstance.level++;
     if (gameInstance.level == 22) {
         gameInstance.level = 1;
     }
     initObject(gameInstance);
+    // console.log(gameInstance.gameMode);
+    if (gameInstance.gameMode == GAME_MODE.ADVENTURE_GAME) {
+        gameInstance.menu.playNum = 2;
+    }
     //只有一个玩家
     if (gameInstance.menu.playNum == 1) {
         gameInstance.player2.lives = 0;

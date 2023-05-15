@@ -31,6 +31,8 @@ var Tank = function () {
 	this.hit = false; //是否碰到墙或者坦克
 	this.isAI = false; //是否自动
 	this.isShooting = false;//子弹是否在运行中
+	this.shootNum = 0;
+	this.maxShootNum = 3;
 	this.bullet = null;//子弹
 	this.shootRate = 0.6;//射击的概率
 	this.isDestroyed = false;
@@ -41,8 +43,8 @@ var Tank = function () {
 		if (this.isAI && gameInstance.emenyStopTime > 0) {
 			return;
 		}
-		if (this.isShooting) {//子弹未销毁之前不添加新的子弹
-			// console.log("isShooting");
+		if ((this.isAI && this.isShooting) || (!this.isAI && this.shootNum >= this.maxShootNum)) {
+			//ai且正在射击 || player且达到最大子弹数量
 			return;
 		} else {
 			var tempX = this.x;
@@ -82,6 +84,9 @@ var Tank = function () {
 			//this.bullet.draw(ws, gameInstance, gameInstance.bulletArray.length - 1);
 
 			this.isShooting = true;
+			if (!this.isAI) {
+				this.shootNum++;
+			}
 		}
 	}
 	/**

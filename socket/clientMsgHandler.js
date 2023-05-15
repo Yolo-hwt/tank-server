@@ -28,7 +28,7 @@ const { eventBus } = require("../hook/eventBus");
 const clientMsgHandler = function (cMsg, ws) {
     const type = cMsg.type ?? "default";
     const data = cMsg.data ?? "";
-
+    // console.log(cMsg.data);
     switch (type) {
         case MSG_NORMAL: {
             normalMsgHandler(data);
@@ -286,7 +286,7 @@ const adventureGameHandler = function (ws, signType, gameInstance, refers) {
         case MULTI_CLIENT_TYPE.ADVENTURE_CLIENT_STAGEISREADY: {//客户端stage就绪
             //设置对应客户端stage为绘制完毕
             ws.adventureDrawStageIsReady = true;
-            if (ws.t.adventureStageIsAllReady(ws.name)) {
+            if (ws.t?.adventureStageIsAllReady(ws.name)) {
                 gameInstance.gameState = GAME_STATE_START;
                 let wslist = ws.t.adventurePlayerMap.get(ws.name).playerWs;
                 //同步客户端数据，开始游戏

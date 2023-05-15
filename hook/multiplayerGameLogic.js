@@ -114,7 +114,6 @@ const adventureGameLoop = function (wslist, gameInstance) {
         case GAME_STATE_MENU:
             {
                 //实质为通知客户端修改游戏状态
-
                 gameInstance.menu.drawAdventure(wslist, gameInstance);
                 break;
             }
@@ -151,13 +150,14 @@ const adventureGameLoop = function (wslist, gameInstance) {
                     ServerSendMsg(
                         wslist,
                         MSG_TYPE_SERVER.MSG_SYNC_SERVER,
-                        new SyncMsg('game_state', SYNC_SERVER_TYPE.BASIC_DATA_SERVER, { level: 1, target: ["gameState"], value: STATE.GAME_STATE_WIN })
+                        new SyncMsg('game_win', SYNC_SERVER_TYPE.BASIC_DATA_SERVER, { level: 1, target: ["gameState"], value: STATE.GAME_STATE_WIN })
                     );
                 }
                 break;
             }
         case GAME_STATE_WIN:
             //客户端检测到游戏状态为win自动跳到下一关
+            //服务端啊两个ws的stageisReady状态重置
             nextLevel(wslist, gameInstance);
             break;
         case GAME_STATE_OVER:
@@ -170,6 +170,7 @@ const initAdventureData = function () {
     const gameInstance = new GameInstance();
     initObject(gameInstance);
     gameInstance.map.playNum = 2;
+    gameInstance.gameMode = GAME_MODE.ADVENTURE_GAME;
     return gameInstance;
 }
 /**
