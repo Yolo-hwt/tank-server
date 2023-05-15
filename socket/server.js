@@ -24,6 +24,7 @@ const pathname = '/ws/'//访问路径
 const matchTime = 15;
 const server = http.createServer()
 const webSocketServer = new WebSocketServer({ noServer: true })
+//key:name + partnerName value:{ player1: name, player2: partnerName, loopid }
 const adventureGameList = new Map();
 
 //通过http.server监听upgrade事件配合URL类过滤数据
@@ -75,9 +76,8 @@ function checkUrl(url, key) {//判断url是否包含key
 //事件挂载
 function eventsOn() {
     eventBus.on("startAdventure", (name) => startAdventureGame(name));
-    eventBus.on("clearAdventureLoop", (key) => {
-        clearInterval(adventureGameList.get(key).loopid)
-        adventureGameList.delete(key);
+    eventBus.on("clearAdventureData", (name) => {
+        clearClientGameData(name);
     });
 }
 //开始adventure game
@@ -86,7 +86,7 @@ function startAdventureGame(name) {
     if (!playerWs) {//若找不到客户端连接
         return;
     }
-    if (playerWs.gameInstance) { //若已有游戏实体则说明已经创建游戏循环成功，
+    if (playerWs.gameInstance != null || playerWs.gameInstance != undefined) { //若已有游戏实体则说明已经创建游戏循环成功，
         return;
     }
     //获取partner连接实体
@@ -113,4 +113,37 @@ function startAdventureGame(name) {
     }, 20);
     //添加到looplist
     adventureGameList.set("" + name + partnerName, { player1: name, player2: partnerName, loopid });
+    adventureGameList.set("" + partnerName + name, { player1: name, player2: partnerName, loopid });
+}
+
+//清除客户端游戏数据
+function clearClientGameData(name) {
+    //清除adventureGameList
+    const playerWs = webSocketServer.adventurePlayerMap.get(name)?.playerWs;
+    const players = webSocketServer.adventurePlayerMap.get(name)?.players;
+    if (!players || !playerWs) {
+        //说明已经清除了
+        return;
+    }
+    //重置playerws标识
+    for (let i = 0; i < playerWs.length; i++) {
+        playerWs[i].matchCodes = "";
+        playerWs[i].adventureClientIsReady = false;//标识参与双人冒险的客户端是否已经准备好
+        playerWs[i].adventureDrawStageIsReady = false;//标识客户端stage绘制完毕
+        playerWs[i].close();
+    }
+    const gameListkey1 = players[0] + players[1];
+    const gameListkey2 = players[1] + players[0];
+    //两个client共有一个循环，清楚一次即可
+    clearInterval(adventureGameList.get(gameListkey1).loopid);
+    //清除list
+    adventureGameList.delete(gameListkey1);
+    adventureGameList.delete(gameListkey2);
+
+    //清除webSocketServer.adventurePlayerMap
+    webSocketServer.getAdventureMap().delete(players[0]);
+    webSocketServer.getAdventureMap().delete(players[1]);
+
+    //
+    console.log(players, "clear adventure data");
 }

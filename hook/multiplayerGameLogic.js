@@ -1,6 +1,7 @@
 //socketMessage
 const {
     ServerSendMsg,
+    SyncMsg,
     MultiMsg,
     MSG_TYPE_SERVER,
     MULTI_SERVER_TYPE,
@@ -26,7 +27,7 @@ const matchAdventureGameByCodes = function (ws, matchTime) {
     const name = ws.name;
     const matchCodes = ws.matchCodes;
     const webSocketTemp = ws.t;
-    let clients = webSocketTemp.getClients();
+    let clients = {};
     let timeTemp = matchTime * 1000;
     let matchTimer = setInterval(() => {
         //连接已经主动断开
@@ -41,13 +42,13 @@ const matchAdventureGameByCodes = function (ws, matchTime) {
         }
         timeTemp -= 50;
         //如果adventureMap中存在当前待匹配name说明已经匹配完成
-        if (webSocketTemp.getAdventureMap().has(name)) {
+        if (webSocketTemp.getAdventureMap().get(name)) {
             //已经匹配成功
             matchAdventureSuccess(webSocketTemp, matchTimer, name);
         } else {
             //循环查找client，并匹配
             clients = webSocketTemp.getClients();
-            const curPlayerWs = clients[name];
+            let curPlayerWs = clients[name];
             let clientsKey = Object.keys(clients);
             for (let i = 0; i < clientsKey.length; i++) {
                 const key = clientsKey[i];

@@ -1,6 +1,7 @@
 const WebSocket = require('ws');
 
-const { clientMsgHandler } = require("./clientMsgHandler")
+const { clientMsgHandler } = require("./clientMsgHandler");
+const { MSG_TYPE_CLIENT } = require('./socketMessage');
 class WebSocketServer extends WebSocket.Server {
     constructor() {
         super(...arguments);
@@ -9,7 +10,6 @@ class WebSocketServer extends WebSocket.Server {
         // value:{ isReady: false, players: [player1, player2], playerWs: [clients[name], client],curPlayerIndex: 0, partnerIndex: 1 }
         this.adventurePlayerMap = new Map();//存放双人游戏匹配到的客户端
         this.multiplayerMap = new Map();//存放四人游戏匹配到的客户端
-
     }
 
     set ws(val) {//代理当前的ws，赋值时将其初始化
@@ -39,7 +39,11 @@ class WebSocketServer extends WebSocket.Server {
         // console.log(cmsg);
         const name = cmsg.name ?? "";
         const wslist = this.t.adventurePlayerMap.get(name)?.playerWs;
+
         const ws = this.t.webSocketClient[name];
+        // if (cmsg.type == MSG_TYPE_CLIENT.MSG_KEY) {
+        //     console.log(name);
+        // }
         if (this.t.adventureStageIsAllReady(name)) {
             clientMsgHandler(cmsg, wslist);
         } else {
@@ -71,6 +75,7 @@ class WebSocketServer extends WebSocket.Server {
         this.webSocketClient[item['name']] = item
         console.log(item['name'] + '客户端已添加')
     }
+    //
     removeClient(item) {//设备断线时从客户端列表删除
         if (!this.webSocketClient[item['name']]) {
             console.log(item['name'] + '客户端不存在')
@@ -90,6 +95,7 @@ class WebSocketServer extends WebSocket.Server {
     addAdventure(player, value) {
         this.adventurePlayerMap.set(player, value);
     }
+    //
     removeAdventure(name) {
         let playerObj = this.adventurePlayerMap.get(name);
         if (playerObj) {
@@ -109,6 +115,9 @@ class WebSocketServer extends WebSocket.Server {
     adventurePlayersIsAllReady(name) {
         const playerWs = this.webSocketClient[name];
         const playerObj = this.adventurePlayerMap.get(name);
+        if (!playerObj) {
+            return false;
+        }
         const { players, partnerIndex } = playerObj;
         const partnerWs = this.webSocketClient[players[partnerIndex]];
         if (playerWs && partnerWs) {
@@ -119,6 +128,9 @@ class WebSocketServer extends WebSocket.Server {
     adventureStageIsAllReady(name) {
         const playerWs = this.webSocketClient[name];
         const playerObj = this.adventurePlayerMap.get(name);
+        if (!playerObj) {
+            return false;
+        }
         const { players, partnerIndex } = playerObj;
         const partnerWs = this.webSocketClient[players[partnerIndex]];
         if (playerWs && partnerWs) {

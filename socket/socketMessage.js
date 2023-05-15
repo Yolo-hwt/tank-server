@@ -78,6 +78,7 @@ const SYNC_CLIENT_TYPE = {
 const MULTI_CLIENT_TYPE = {
     ADVENTURE_CLIENT_READY: "adventure_client_ok",
     ADVENTURE_CLIENT_STAGEISREADY: "adventure_client_stage_ok",
+    ADVENTURE_CLIENT_CLEAR: "adventure_client_clear",
 }
 
 
