@@ -189,6 +189,7 @@ const addEnemyTank = function (ws, gameInstance) {
 };
 //绘制子弹
 const drawBullets = function (ws, gameInstance) {
+    const mode = gameInstance.gameMode
     if (gameInstance.bulletArray != null && gameInstance.bulletArray.length > 0) {
         for (let i = 0; i < gameInstance.bulletArray.length; i++) {
             var bulletObj = gameInstance.bulletArray[i];
@@ -208,7 +209,7 @@ const drawBullets = function (ws, gameInstance) {
                 );
                 i--;
             } else {
-                bulletObj.draw(ws, gameInstance, i);
+                bulletObj.draw(ws, gameInstance, i, mode == GAME_MODE.MULTIPLAER_GAME);
             }
         }
         //子弹移动以及碰撞检测

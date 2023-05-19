@@ -364,14 +364,14 @@ const multiplayerGameLoop = function (wslist, gameInstance) {
                         if (gameInstance["player" + wslist[i].multiplayerIndex].lives > 0) {
                             //客户端游戏状态为win
                             ServerSendMsg(
-                                wslist,
+                                wslist[i],
                                 MSG_TYPE_SERVER.MSG_SYNC_SERVER,
                                 new SyncMsg('game_win', SYNC_SERVER_TYPE.BASIC_DATA_SERVER, { level: 1, target: ["gameState"], value: STATE.GAME_STATE_WIN })
                             );
                         } else {
                             //lose
                             ServerSendMsg(
-                                wslist,
+                                wslist[i],
                                 MSG_TYPE_SERVER.MSG_SYNC_SERVER,
                                 new SyncMsg('game_lose', SYNC_SERVER_TYPE.BASIC_DATA_SERVER, { level: 1, target: ["gameState"], value: STATE.GAME_STATE_LOSE })
                             );
@@ -421,6 +421,7 @@ const multiplayInitObject = function (gameInstance, playerNum) {
 
     for (let i = 1; i < 5; i++) {
         gameInstance["player" + i] = new PlayTank(gameInstance);
+
         gameInstance["player" + i].lives = 0;
         //玩家出生点
         gameInstance["player" + i].x = MULIPLAYER_LOCATION["p" + i][0] + gameInstance.map.offsetX;

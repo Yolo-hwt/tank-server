@@ -52,6 +52,59 @@ module.exports.Map = function () {
 		this.mapLevel[mapHeight - 1 - 1][mapWidth - 1] = 0;
 		this.mapLevel[mapHeight - 1][mapWidth - 1 - 1] = 0;
 		this.mapLevel[mapHeight - 1][mapWidth - 1] = 0;
+		//设置新的围栏
+		//左上角围栏
+		this.mapLevel[0][2] = 1;
+		this.mapLevel[0][3] = 1;
+		this.mapLevel[1][2] = 1;
+		this.mapLevel[1][3] = 1;
+		this.mapLevel[2][0] = 1;
+		this.mapLevel[2][1] = 1;
+		this.mapLevel[2][2] = 1;
+		this.mapLevel[2][3] = 1;
+		this.mapLevel[3][0] = 1;
+		this.mapLevel[3][1] = 1;
+		this.mapLevel[3][2] = 1;
+		this.mapLevel[3][3] = 1;
+		//右上角围栏
+		this.mapLevel[0][mapWidth - 1 - 3] = 1;
+		this.mapLevel[0][mapWidth - 1 - 2] = 1;
+		this.mapLevel[1][mapWidth - 1 - 3] = 1;
+		this.mapLevel[1][mapWidth - 1 - 2] = 1;
+		this.mapLevel[2][mapWidth - 1 - 3] = 1;
+		this.mapLevel[2][mapWidth - 1 - 2] = 1;
+		this.mapLevel[2][mapWidth - 1 - 1] = 1;
+		this.mapLevel[2][mapWidth - 1 - 0] = 1;
+		this.mapLevel[3][mapWidth - 1 - 3] = 1;
+		this.mapLevel[3][mapWidth - 1 - 2] = 1;
+		this.mapLevel[3][mapWidth - 1 - 1] = 1;
+		this.mapLevel[3][mapWidth - 1 - 0] = 1;
+		//左下角围栏
+		this.mapLevel[mapHeight - 1 - 3][0] = 1;
+		this.mapLevel[mapHeight - 1 - 3][1] = 1;
+		this.mapLevel[mapHeight - 1 - 3][2] = 1;
+		this.mapLevel[mapHeight - 1 - 3][3] = 1;
+		this.mapLevel[mapHeight - 1 - 2][0] = 1;
+		this.mapLevel[mapHeight - 1 - 2][1] = 1;
+		this.mapLevel[mapHeight - 1 - 2][2] = 1;
+		this.mapLevel[mapHeight - 1 - 2][3] = 1;
+		this.mapLevel[mapHeight - 1 - 1][2] = 1;
+		this.mapLevel[mapHeight - 1 - 1][3] = 1;
+		this.mapLevel[mapHeight - 1 - 0][2] = 1;
+		this.mapLevel[mapHeight - 1 - 0][3] = 1;
+		//右下角围栏
+		this.mapLevel[mapHeight - 1 - 3][mapWidth - 1 - 3] = 1;
+		this.mapLevel[mapHeight - 1 - 3][mapWidth - 1 - 2] = 1;
+		this.mapLevel[mapHeight - 1 - 3][mapWidth - 1 - 1] = 1;
+		this.mapLevel[mapHeight - 1 - 3][mapWidth - 1 - 0] = 1;
+		this.mapLevel[mapHeight - 1 - 2][mapWidth - 1 - 3] = 1;
+		this.mapLevel[mapHeight - 1 - 2][mapWidth - 1 - 2] = 1;
+		this.mapLevel[mapHeight - 1 - 2][mapWidth - 1 - 1] = 1;
+		this.mapLevel[mapHeight - 1 - 2][mapWidth - 1 - 0] = 1;
+		this.mapLevel[mapHeight - 1 - 1][mapWidth - 1 - 3] = 1;
+		this.mapLevel[mapHeight - 1 - 1][mapWidth - 1 - 2] = 1;
+		this.mapLevel[mapHeight - 1 - 0][mapWidth - 1 - 3] = 1;
+		this.mapLevel[mapHeight - 1 - 0][mapWidth - 1 - 2] = 1;
 	}
 	/**
 	 * 更新地图

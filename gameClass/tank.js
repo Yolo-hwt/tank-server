@@ -1,5 +1,5 @@
 //全局变量引入
-const { DIRECT, CRACK_TYPE } = require("../hook/globalParams");
+const { DIRECT, CRACK_TYPE, MULIPLAYER_LOCATION, GAME_MODE } = require("../hook/globalParams");
 const { UP, DOWN, LEFT, RIGHT } = DIRECT;
 //工具函数引入
 const { tankMapCollision } = require("../utils/Collision")
@@ -97,7 +97,7 @@ var Tank = function () {
 	this.distroy = function (ws, gameInstance, type, tankIndex) {
 		this.isDestroyed = true;
 		if (type == 1) {
-			this.renascenc(tankIndex, gameInstance);
+			this.renascenc(tankIndex, gameInstance, gameInstance.gameMode == GAME_MODE.MULTIPLAER_GAME);
 			//同步客户端player状态
 			ServerSendMsg(
 				ws,
@@ -224,21 +224,33 @@ var PlayTank = function () {
 	this.offsetX = 0;//坦克2与坦克1的距离
 	this.speed = 5;//坦克的速度
 
-	this.renascenc = function (player, gameInstance) {
+	this.renascenc = function (player, gameInstance, multi_sign = false) {
 		this.lives--;
 		this.dir = UP;
 		this.isProtected = true;
 		this.protectedTime = 500;
 		this.isDestroyed = false;
-		var temp = 0;
-		if (player == 1) {
-			temp = 129;
+		if (!multi_sign) {
+			let temp = 0;
+			if (player == 1) {
+				temp = 129;
+			} else {
+				temp = 256;
+			}
+			this.x = temp + gameInstance.map.offsetX;
+			this.y = 385 + gameInstance.map.offsetY;
 		} else {
-			temp = 256;
+			const site = this.resetPlayerSite(player, gameInstance);
+			this.x = site.x;
+			this.y = site.y;
 		}
-		this.x = temp + gameInstance.map.offsetX;
-		this.y = 385 + gameInstance.map.offsetY;
 	};
+	this.resetPlayerSite = function (playerIndex, gameInstance) {
+		const site = { x: 0, y: 0 };
+		site.x = MULIPLAYER_LOCATION["p" + playerIndex][0] + gameInstance.map.offsetX;
+		site.y = MULIPLAYER_LOCATION["p" + playerIndex][1] + gameInstance.map.offsetY;
+		return site;
+	}
 
 };
 PlayTank.prototype = new Tank();

@@ -221,13 +221,14 @@ function startMultiPlayerGame(name) {
 }
 //清除多人游戏数据
 function clearMultiPlayerGameData(matchCodes) {
-    console.log("matchCodes" + matchCodes + "多人游戏结束，清除游戏数据");
+
     const matchGameMap = webSocketServer.getMultiPlayerGameMap();
     const matchGame = matchGameMap.get(matchCodes);
     if (!matchGame) {
         //说明已经清除了
         return;
     }
+    console.log("matchCodes: " + matchCodes + "多人游戏对局结束，清除游戏数据");
     const matchPlayerWsList = webSocketServer.getMultiPlayerMatchWsListByCode(matchCodes);
     const players = matchGame?.players;
     const playerNum = matchGame?.playerNum ?? 0;

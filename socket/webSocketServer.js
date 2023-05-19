@@ -3,6 +3,8 @@ const WebSocket = require('ws');
 const { clientMsgHandler } = require("./clientMsgHandler");
 const { MSG_TYPE_CLIENT } = require('./socketMessage');
 const { GAME_MODE } = require('../hook/globalParams');
+//eventBus
+const { eventBus } = require("../hook/eventBus");
 class WebSocketServer extends WebSocket.Server {
     constructor() {
         super(...arguments);
@@ -73,7 +75,6 @@ class WebSocketServer extends WebSocket.Server {
         this.t.removeClient(this)
         console.info('客户端出错')
     }
-
     closeHandler(e) {
         this.t.removeClient(this)
         console.info('客户端已断开')
