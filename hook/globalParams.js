@@ -77,8 +77,15 @@ module.exports.STATE = {
     GAME_STATE_START: 2,
     GAME_STATE_OVER: 3,
     GAME_STATE_WIN: 4,
+    GAME_STATE_LOSE: 5,
 }
+/*************多人匹配状态 ************/
+module.exports.MATCH_STATE = {
+    MULTI_MATCH_ING: 'multiplayer_match_ing',
+    MULTI_MATCH_SUCCESS: 'multiplayer_match_success',
+    MULTI_MATCH_FAILED: 'multiplayer_match_failed',
 
+}
 /**************地图块*****************/
 module.exports.TAGS = {
     WALL: 1,
@@ -100,6 +107,9 @@ module.exports.DIRECT = {
 
 /**************坦克重生点*****************/
 module.exports.ENEMY_LOCATION = [192, 0, 384] //相对与主游戏区
+
+/**************多人对战玩家重生点*****************/
+module.exports.MULIPLAYER_LOCATION = { p1: [0, 0], p2: [384, 0], p3: [0, 385], p4: [384, 385] } //相对与主游戏区
 
 /**************子弹类型*****************/
 module.exports.BULLET_TYPE = {

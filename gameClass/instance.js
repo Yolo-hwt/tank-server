@@ -20,6 +20,8 @@ class GameInstance {
         this.map = null; //地图
         this.player1 = null; //玩家1
         this.player2 = null; //玩家2
+        this.player3 = null; //玩家3
+        this.player4 = null; //玩家4
         this.prop = null;
         this.enemyArray = []; //敌方坦克
         this.bulletArray = []; //子弹数组

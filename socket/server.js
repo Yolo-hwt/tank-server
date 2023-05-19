@@ -6,13 +6,15 @@ require("../utils/Helper")
 const { WebSocketServer } = require("./webSocketServer")
 //socketMessage
 //全局变量引入
-const { GAME_MODE } = require("../hook/globalParams")
+const { GAME_MODE, MATCH_STATE } = require("../hook/globalParams")
 //多人游戏匹配方法引入
 const {
     matchAdventureGameByCodes,
     matchMultiplayerGameByCodes,
     adventureGameLoop,
-    initAdventureData
+    initAdventureData,
+    initMultiplayerData,
+    multiplayerGameLoop
 } = require("../hook/multiplayerGameLogic")
 
 //eventBus
@@ -21,11 +23,13 @@ eventsOn();
 //静态参数
 const port = 1024//端口
 const pathname = '/ws/'//访问路径
-const matchTime = 15;
+const matchTime = 5;
 const server = http.createServer()
 const webSocketServer = new WebSocketServer({ noServer: true })
 //key:name + partnerName value:{ player1: name, player2: partnerName, loopid }
 const adventureGameList = new Map();
+
+const multiplayerGameList = new Map();
 
 //通过http.server监听upgrade事件配合URL类过滤数据
 server.on("upgrade", (req, socket, head) => {
@@ -43,6 +47,7 @@ server.on("upgrade", (req, socket, head) => {
         //客户端name和matchCodes
         ws.name = name;
         ws.matchCodes = code;
+        ws.gameMode = mode;
         webSocketServer.addClient(ws);
         //设置socket，代理ws
         webSocketServer.ws = ws
@@ -52,7 +57,7 @@ server.on("upgrade", (req, socket, head) => {
                 break;
             }
             case GAME_MODE.MULTIPLAER_GAME: {
-                matchMultiplayerGameByCodes()
+                matchMultiplayerGameByCodes(ws, matchTime);
                 break;
             }
             default:
@@ -76,9 +81,14 @@ function checkUrl(url, key) {//判断url是否包含key
 //事件挂载
 function eventsOn() {
     eventBus.on("startAdventure", (name) => startAdventureGame(name));
+    eventBus.on("startMultiPlayer", (name) => startMultiPlayerGame(name));
     eventBus.on("clearAdventureData", (name) => {
-        clearClientGameData(name);
+        clearAdventureGameData(name);
     });
+    eventBus.on("clearMultiPlayerData", (matchCodes) => {
+        clearMultiPlayerGameData(matchCodes);
+    });
+
 }
 //开始adventure game
 function startAdventureGame(name) {
@@ -115,12 +125,13 @@ function startAdventureGame(name) {
     adventureGameList.set("" + name + partnerName, { player1: name, player2: partnerName, loopid });
     adventureGameList.set("" + partnerName + name, { player1: name, player2: partnerName, loopid });
 }
-
 //清除客户端游戏数据
-function clearClientGameData(name) {
+function clearAdventureGameData(name) {
+    let playerMap = {};
+    playerMap = webSocketServer.getAdventureMap();
     //清除adventureGameList
-    const playerWs = webSocketServer.adventurePlayerMap.get(name)?.playerWs;
-    const players = webSocketServer.adventurePlayerMap.get(name)?.players;
+    const playerWs = playerMap.get(name)?.playerWs;
+    const players = playerMap.get(name)?.players;
     if (!players || !playerWs) {
         //说明已经清除了
         return;
@@ -146,4 +157,65 @@ function clearClientGameData(name) {
 
     //
     console.log(players, "clear adventure data");
+}
+//开启multiplayer游戏
+function startMultiPlayerGame(name) {
+    const playerWs = webSocketServer.getClientByName(name);
+    if (!playerWs) {//若找不到客户端连接
+        return;
+    }
+    if (playerWs.gameInstance != null || playerWs.gameInstance != undefined) { //若已有游戏实体则说明已经创建游戏循环成功，
+        return;
+    }
+    const matchCodes = playerWs.matchCodes;
+    //获取其余匹配对象连接实体
+    const { players } = webSocketServer.getMultiPlayerGameByMatchCode(matchCodes);
+    const clients = webSocketServer.getMultiPlayerMatchWsListByCode(matchCodes);
+    //添加游戏实体
+    const gameInstance = initMultiplayerData(clients.length);
+    for (let i = 0; i < clients.length; i++) {
+        if (clients[i]) {
+            clients[i].gameInstance = gameInstance;
+        }
+    }
+    //开启游戏循环
+    const loopid = setInterval(() => {
+        //查询双方客户端是否已经准备就绪
+        if (!(webSocketServer.multiPlayersIsAllReady(matchCodes))) {
+            return;
+        }
+        // console.log("start Multi");
+        multiplayerGameLoop(webSocketServer.getMultiPlayerMatchWsListByCode(matchCodes), gameInstance);
+    }, 20);
+    //添加到looplist
+    multiplayerGameList.set("" + matchCodes, { players, loopid });
+
+}
+//清除多人游戏数据
+function clearMultiPlayerGameData(matchCodes) {
+    console.log("matchCodes" + matchCodes + "多人游戏结束，清除游戏数据");
+    const matchGameMap = webSocketServer.getMultiPlayerGameMap();
+    const matchGame = matchGameMap.get(matchCodes);
+    if (!matchGame) {
+        //说明已经清除了
+        return;
+    }
+    const matchPlayerWsList = webSocketServer.getMultiPlayerMatchWsListByCode(matchCodes);
+    const players = matchGame?.players;
+    const playerNum = matchGame?.playerNum ?? 0;
+    //重置playerws标识
+    for (let i = 0; i < playerNum; i++) {
+        matchPlayerWsList[i].matchCodes = "";
+        matchPlayerWsList[i].multiClientIsReady = false;//标识参与多人对战的客户端是否已经准备好
+        matchPlayerWsList[i].multiDrawStageIsReady = false;//标识客户端stage绘制完毕
+        matchPlayerWsList[i].close();
+    }
+    //清除multiplayerGameList和multiPlayerGameMap
+
+    //四个client共有一个循环，清楚一次即可
+    clearInterval(multiplayerGameList.get(matchCodes).loopid);
+    adventureGameList.delete(matchCodes);
+    matchGameMap.delete(matchCodes);
+    //
+    console.log(players, "clear multiplayer data");
 }

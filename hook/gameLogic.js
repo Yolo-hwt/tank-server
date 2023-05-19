@@ -105,12 +105,18 @@ const initObject = function (gameInstance) {
     gameInstance.propTime = 600;//1000
 };
 //初始化地图
-const initMap = function (gameInstance, level) {
-    gameInstance.map.setMapLevel(level);
+const initMap = function (gameInstance, level, multi_sign = false) {
+    if (multi_sign) {
+        gameInstance.map.setMultiMapLevel(level);
+    } else {
+        gameInstance.map.setMapLevel(level);
+    }
 };
 //绘制所有
-const drawAll = function (ws, gameInstance) {
-    addAndDrawEnemyTanks(ws, gameInstance);
+const drawAll = function (ws, gameInstance, multi_sign = false) {
+    if (!multi_sign) {//多人模式不绘制ai坦克
+        addAndDrawEnemyTanks(ws, gameInstance);
+    }
     drawBullets(ws, gameInstance);
     // drawCracks(ws, gameInstance);
     keyEventForPlayerMove(ws, gameInstance);

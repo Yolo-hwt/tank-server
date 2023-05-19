@@ -25,6 +25,34 @@ module.exports.Map = function () {
 
 		}
 	};
+	this.setMultiMapLevel = function (level) {
+		//兼容性判断，是否有提供更新本地数据的服务器数据
+		this.level = level ?? gameInstance.level;
+
+		var tempMap = MAPLEVELS['map' + this.level];
+		this.mapLevel = new Array();
+
+		for (var i = 0; i < tempMap.length; i++) {
+			this.mapLevel[i] = new Array();
+			for (var j = 0; j < tempMap[i].length; j++) {
+				this.mapLevel[i][j] = tempMap[i][j];
+			}
+		}
+		//清除四个角落的障碍物//其中上侧的障碍物在设计之初就已经是清除的，为了满足ai坦克重生点
+		const mapHeight = tempMap.length;
+		const mapWidth = tempMap[0].length;
+		//左右两个底角
+		//左下角
+		this.mapLevel[mapHeight - 1 - 1][0] = 0;
+		this.mapLevel[mapHeight - 1 - 1][1] = 0;
+		this.mapLevel[mapHeight - 1][0] = 0;
+		this.mapLevel[mapHeight - 1][1] = 0;
+		//右下角
+		this.mapLevel[mapHeight - 1 - 1][mapWidth - 1 - 1] = 0;
+		this.mapLevel[mapHeight - 1 - 1][mapWidth - 1] = 0;
+		this.mapLevel[mapHeight - 1][mapWidth - 1 - 1] = 0;
+		this.mapLevel[mapHeight - 1][mapWidth - 1] = 0;
+	}
 	/**
 	 * 更新地图
 	 * @param indexArr 需要更新的地图索引数组，二维数组，如[[1,1],[2,2]]

@@ -267,7 +267,7 @@ const multiMsgHandler = function (ws, data) {
             break;
         }
         case GAME_MODE.MULTIPLAER_GAME: {
-            multiGameHandler(ws, signType);
+            multiGameHandler(ws, signType, gameInstance, refers);
             break;
         }
 
@@ -310,8 +310,39 @@ const adventureGameHandler = function (ws, signType, gameInstance, refers) {
             break;
     }
 }
-const multiGameHandler = function (ws, signType) {
-
+const multiGameHandler = function (ws, signType, gameInstance, refers) {
+    switch (signType) {
+        case MULTI_CLIENT_TYPE.MULTI_CLIENT_READY: {//客户端准备就绪
+            //设置对应客户端连接状态为游戏就绪
+            ws.multiClientIsReady = true;
+            break;
+        }
+        case MULTI_CLIENT_TYPE.MULTI_CLIENT_STAGEISREADY: {//客户端stage就绪
+            //设置对应客户端stage为绘制完毕
+            ws.multiDrawStageIsReady = true;
+            if (ws.t?.multiStageIsAllReady(ws.matchCodes)) {
+                gameInstance.gameState = GAME_STATE_START;
+                let wslist = ws.t.getMultiPlayerMatchWsListByCode(ws.matchCodes);
+                //同步客户端数据，开始游戏
+                ServerSendMsg(
+                    wslist,
+                    MSG_TYPE_SERVER.MSG_SYNC_SERVER,
+                    new SyncMsg(
+                        'game_state',
+                        SYNC_SERVER_TYPE.BASIC_DATA_SERVER,
+                        { level: 1, target: ["gameState"], value: GAME_STATE_START }
+                    )
+                );
+            }
+            break;
+        }
+        case MULTI_CLIENT_TYPE.MULTI_CLIENT_CLEAR: {//清除客户端游戏数据
+            eventBus.emit("clearMultiPlayerData", ws.matchCodes);
+            break;
+        }
+        default:
+            break;
+    }
 }
 module.exports = {
     clientMsgHandler,
