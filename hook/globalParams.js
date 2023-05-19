@@ -1,4 +1,6 @@
 const { Keyboard } = require("../gameClass/keyboard")
+
+
 /*****************键盘类******************* */
 const getKeyBoard = () => {
     return new Keyboard()
@@ -86,6 +88,13 @@ module.exports.MATCH_STATE = {
     MULTI_MATCH_FAILED: 'multiplayer_match_failed',
 
 }
+/*************多人游戏参数 ************/
+module.exports.MULTIPLAYER_DATA = {
+    PLAYER_LIVES: 3,
+    MATCH_ADVENTURE_TIMES: 15,
+    MATCH_MULTI_TIMES: 5,
+}
+
 /**************地图块*****************/
 module.exports.TAGS = {
     WALL: 1,

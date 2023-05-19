@@ -6,7 +6,7 @@ require("../utils/Helper")
 const { WebSocketServer } = require("./webSocketServer")
 //socketMessage
 //全局变量引入
-const { GAME_MODE, MATCH_STATE } = require("../hook/globalParams")
+const { GAME_MODE, MULTIPLAYER_DATA } = require("../hook/globalParams")
 //多人游戏匹配方法引入
 const {
     matchAdventureGameByCodes,
@@ -16,14 +16,20 @@ const {
     initMultiplayerData,
     multiplayerGameLoop
 } = require("../hook/multiplayerGameLogic")
-
+//socketMessage
+const {
+    ServerSendMsg,
+    SyncMsg,
+    SYNC_SERVER_TYPE,
+    MSG_TYPE_SERVER,
+} = require("./socketMessage")
 //eventBus
 const { eventBus } = require("../hook/eventBus");
 eventsOn();
 //静态参数
 const port = 1024//端口
 const pathname = '/ws/'//访问路径
-const matchTime = 5;
+// const matchTime = 5;
 const server = http.createServer()
 const webSocketServer = new WebSocketServer({ noServer: true })
 //key:name + partnerName value:{ player1: name, player2: partnerName, loopid }
@@ -53,11 +59,11 @@ server.on("upgrade", (req, socket, head) => {
         webSocketServer.ws = ws
         switch (mode) {
             case GAME_MODE.ADVENTURE_GAME: {
-                matchAdventureGameByCodes(ws, matchTime);
+                matchAdventureGameByCodes(ws, MULTIPLAYER_DATA.MATCH_ADVENTURE_TIMES);
                 break;
             }
             case GAME_MODE.MULTIPLAER_GAME: {
-                matchMultiplayerGameByCodes(ws, matchTime);
+                matchMultiplayerGameByCodes(ws, MULTIPLAYER_DATA.MATCH_MULTI_TIMES);
                 break;
             }
             default:
@@ -176,13 +182,35 @@ function startMultiPlayerGame(name) {
     for (let i = 0; i < clients.length; i++) {
         if (clients[i]) {
             clients[i].gameInstance = gameInstance;
+            //为玩家添加基础生命值
+            gameInstance["player" + (i + 1)].lives = MULTIPLAYER_DATA.PLAYER_LIVES;
+
         }
     }
+    let isSyncPlayerLives = false;
     //开启游戏循环
     const loopid = setInterval(() => {
         //查询双方客户端是否已经准备就绪
         if (!(webSocketServer.multiPlayersIsAllReady(matchCodes))) {
             return;
+        }
+        //就绪之后，同步客户端玩家生命值
+        if (!isSyncPlayerLives) {
+            for (let i = 0; i < clients.length; i++) {
+                if (clients[i]) {
+                    //客户端同步玩家生命值
+                    ServerSendMsg(
+                        clients,
+                        MSG_TYPE_SERVER.MSG_SYNC_SERVER,
+                        new SyncMsg(
+                            'player' + (i + 1) + '_lives',
+                            SYNC_SERVER_TYPE.BASIC_DATA_SERVER,
+                            { level: 2, target: ["player" + (i + 1), "lives"], value: MULTIPLAYER_DATA.PLAYER_LIVES }
+                        )
+                    );
+                }
+            }
+            isSyncPlayerLives = true;
         }
         // console.log("start Multi");
         multiplayerGameLoop(webSocketServer.getMultiPlayerMatchWsListByCode(matchCodes), gameInstance);

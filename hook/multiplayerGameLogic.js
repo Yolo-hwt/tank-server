@@ -421,6 +421,7 @@ const multiplayInitObject = function (gameInstance, playerNum) {
 
     for (let i = 1; i < 5; i++) {
         gameInstance["player" + i] = new PlayTank(gameInstance);
+        gameInstance["player" + i].lives = 0;
         //玩家出生点
         gameInstance["player" + i].x = MULIPLAYER_LOCATION["p" + i][0] + gameInstance.map.offsetX;
         gameInstance["player" + i].y = MULIPLAYER_LOCATION["p" + i][1] + gameInstance.map.offsetY;
