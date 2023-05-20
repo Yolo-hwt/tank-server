@@ -1,5 +1,5 @@
 //全局变量引入
-const { TAGS } = require("../hook/globalParams");
+const { TAGS, MULTIPLAYER_DATA } = require("../hook/globalParams");
 const { CheckIntersect } = require("../utils/Collision");
 const { GRID } = TAGS
 //socketMessage引入
@@ -115,7 +115,7 @@ module.exports.Prop = function (gameInstance) {
 					ServerSendMsg(
 						ws,
 						MSG_TYPE_SERVER.MSG_SYNC_SERVER,
-						new SyncMsg('player_protected', SYNC_SERVER_TYPE.PLAYER_PROTECTED, { index: playerIndex, state: true, time: 500 })
+						new SyncMsg('player_protected', SYNC_SERVER_TYPE.PLAYER_PROTECTED, { index: playerIndex, state: true, time: MULTIPLAYER_DATA.PROTECTED_TIME })
 					);
 					break;
 			}

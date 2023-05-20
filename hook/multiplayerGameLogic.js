@@ -66,6 +66,10 @@ const matchAdventureGameByCodes = function (ws, matchTime) {
                         const player2 = client.name;
                         const val1 = { isReady: false, players: [player1, player2], playerWs: [curPlayerWs, client], curPlayerIndex: 0, partnerIndex: 1 };
                         const val2 = { isReady: false, players: [player1, player2], playerWs: [curPlayerWs, client], curPlayerIndex: 1, partnerIndex: 0 };
+                        //配置玩家1和2
+                        curPlayerWs.adventureplayerIndex = 1;
+                        client.adventureplayerIndex = 2;
+                        //添加到addventureMap
                         webSocketTemp.addAdventure(player1, val1);
                         webSocketTemp.addAdventure(player2, val2);
                         //匹配成功处理

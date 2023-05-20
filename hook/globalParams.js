@@ -90,9 +90,12 @@ module.exports.MATCH_STATE = {
 }
 /*************多人游戏参数 ************/
 module.exports.MULTIPLAYER_DATA = {
-    PLAYER_LIVES: 3,
+    PLAYER_LIVES: 3,//基础生命值
+    PLAYER_BLOODS: 3,//单条生命血条
+    PROTECTED_TIME: 300,//无敌金身时间，200x20ms循环=4000ms
     MATCH_ADVENTURE_TIMES: 15,
     MATCH_MULTI_TIMES: 5,
+
 }
 
 /**************地图块*****************/

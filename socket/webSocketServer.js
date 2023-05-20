@@ -34,6 +34,7 @@ class WebSocketServer extends WebSocket.Server {
         val.isMatchAdventure = false;//已经匹配到双人游戏？
         val.isMatchMultiplayer = false;//已经匹配到多人游戏？
 
+        val.adventureplayerIndex = -1;
         val.multiplayerIndex = -1;//标识匹配到的多人游戏是哪一个玩家
 
         val.t = this;
@@ -56,6 +57,7 @@ class WebSocketServer extends WebSocket.Server {
     messageHandler(e) {
         const cmsg = this.t.getMsg(e);
         // console.log(cmsg);
+        // console.log(cmsg);
         const name = cmsg.name ?? "";
         const ws = this.t.webSocketClient[name];
         let wslist = null;
@@ -64,11 +66,12 @@ class WebSocketServer extends WebSocket.Server {
         } else if (ws.gameMode == GAME_MODE.MULTIPLAER_GAME) {
             wslist = this.t.getMultiPlayerMatchWsListByCode(ws.matchCodes);
         }
-        if (this.t.adventureStageIsAllReady(name) || this.t.multiStageIsAllReady(ws.matchCodes)) {
-            clientMsgHandler(cmsg, wslist);
+        if ((ws.gameMode == GAME_MODE.ADVENTURE_GAME && this.t.adventureStageIsAllReady(name)) ||
+            (ws.gameMode == GAME_MODE.MULTIPLAER_GAME && this.t.multiStageIsAllReady(ws.matchCodes))) {
+            clientMsgHandler(cmsg, wslist, this.t);
         } else {
             //此处无法直接通过this.webSocketClient访问是因为此时的this是ws
-            clientMsgHandler(cmsg, ws);
+            clientMsgHandler(cmsg, ws, this.t);
         }
     }
     errorHandler(e) {

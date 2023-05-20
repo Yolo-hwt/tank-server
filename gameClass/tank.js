@@ -1,5 +1,5 @@
 //全局变量引入
-const { DIRECT, CRACK_TYPE, MULIPLAYER_LOCATION, GAME_MODE } = require("../hook/globalParams");
+const { DIRECT, CRACK_TYPE, MULIPLAYER_LOCATION, GAME_MODE, MULTIPLAYER_DATA } = require("../hook/globalParams");
 const { UP, DOWN, LEFT, RIGHT } = DIRECT;
 //工具函数引入
 const { tankMapCollision } = require("../utils/Collision")
@@ -218,17 +218,19 @@ SelectTank.prototype = new Tank();
  */
 
 var PlayTank = function () {
-	this.lives = 3;//生命值
+	this.lives = MULTIPLAYER_DATA.PLAYER_LIVES;//生命值
+	this.bloods = MULTIPLAYER_DATA.PLAYER_BLOODS;//血条
 	this.isProtected = true;//是否受保护
-	this.protectedTime = 500;//保护时间
+	this.protectedTime = MULTIPLAYER_DATA.PROTECTED_TIME;//保护时间
 	this.offsetX = 0;//坦克2与坦克1的距离
 	this.speed = 5;//坦克的速度
 
 	this.renascenc = function (player, gameInstance, multi_sign = false) {
 		this.lives--;
+		this.bloods = MULTIPLAYER_DATA.PLAYER_BLOODS;//血条
 		this.dir = UP;
 		this.isProtected = true;
-		this.protectedTime = 500;
+		this.protectedTime = MULTIPLAYER_DATA.PROTECTED_TIME;
 		this.isDestroyed = false;
 		if (!multi_sign) {
 			let temp = 0;

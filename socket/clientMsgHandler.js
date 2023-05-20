@@ -25,9 +25,11 @@ const { eventBus } = require("../hook/eventBus");
 /**************** HANDLERS *********************** */
 //根据客户端发送的msg来运行游戏逻辑
 //返回客户端相应的控制指令
-const clientMsgHandler = function (cMsg, ws) {
+const clientMsgHandler = function (cMsg, ws, wsServerTemp) {
+    // console.log(cMsg);
     const type = cMsg.type ?? "default";
     const data = cMsg.data ?? "";
+    const refers = data.refers;
     // console.log(cMsg.data);
     switch (type) {
         case MSG_NORMAL: {
@@ -43,7 +45,7 @@ const clientMsgHandler = function (cMsg, ws) {
             break;
         }
         case MSG_KEY: {
-            keyEventHandler(ws, data);
+            keyEventHandler(ws, wsServerTemp, data, refers);
             break;
         }
         case MSG_MULTI: {
@@ -67,21 +69,30 @@ const heartbeatMsgHandler = function (data) {
     console.log("get client heart-beat msg:", data);
 }
 //键盘事件处理
-const keyEventHandler = function (ws, data) {
-    let gameInstance = null;
-    if (Array.isArray(ws)) {
-        gameInstance = ws[0].gameInstance;
-    } else {
-        gameInstance = ws.gameInstance;
+const keyEventHandler = function (ws, wsServerTemp, data, refers) {
+    //根据玩家用户名获取连接实体
+    const name = refers.name;
+    const curWs = wsServerTemp.getClientByName(name);
+    //从实体上获取游戏模式和对应的playerIndex
+    const mode = curWs.gameMode;
+    let index = 1;
+    if (mode == GAME_MODE.ADVENTURE_GAME) {
+        index = curWs.adventureplayerIndex;
+    } else if (mode == GAME_MODE.MULTIPLAER_GAME) {
+        index = curWs.multiplayerIndex;
     }
+    //获取游戏实体
+    const gameInstance = curWs.gameInstance;
+    //获取键盘事件类型
     const keyType = data.keyType ?? "default"
     switch (keyType) {
         case KEY_EVENT_DOWN: {
-            keydownMsgHandler(ws, gameInstance, data)
+            //ws, gameInstance, data, index, mode
+            keydownMsgHandler(ws, gameInstance, data, index, mode)
             break;
         }
         case KEY_EVENT_UP: {
-            keyupMsgHandler(gameInstance, data)
+            keyupMsgHandler(gameInstance, data, index, mode)
             break;
         }
         default: {
@@ -143,13 +154,13 @@ const syncDataMsgHandler = function (ws, data) {
     }
 }
 //键盘回上事件
-const keyupMsgHandler = function (gameInstance, data) {
+const keyupMsgHandler = function (gameInstance, data, index) {
     const code = data.code;
     // console.log('remove:', code);
-    gameInstance.keys.remove(code);
+    gameInstance.keys.remove(code + "-" + index);
 }
 //键盘按下事件
-const keydownMsgHandler = function (ws, gameInstance, data) {
+const keydownMsgHandler = function (ws, gameInstance, data, index, mode) {
     // ws.send(JSON.stringify({ text: "测试消息" }))
     const code = data.code;
     switch (gameInstance.gameState) {
@@ -158,7 +169,7 @@ const keydownMsgHandler = function (ws, gameInstance, data) {
             break;
         }
         case GAME_STATE_START: {
-            keydown_when_GAME_STATE_START(code, gameInstance, ws)
+            keydown_when_GAME_STATE_START(code, gameInstance, ws, index, mode)
             break;
         }
         default: {
@@ -205,24 +216,29 @@ const keydown_when_GAME_STATE_MENU = function (code, gameInstance, ws) {
         gameInstance.menu.next(ws, n);
     }
 }
-const keydown_when_GAME_STATE_START = function (code, gameInstance, ws) {
-    if (!gameInstance.keys.contain(code)) {
-        gameInstance.keys.push(code);
+const keydown_when_GAME_STATE_START = function (code, gameInstance, ws, index, mode) {
+    //添加到keys
+    if (!gameInstance.keys.contain(code + "-" + index)) {
+        gameInstance.keys.push(code + "-" + index);
     }
     //射击
     if (code == KEYBOARD.SPACE) {
-        if (gameInstance.player1.lives > 0) {
+        if (gameInstance["player" + index].lives > 0) {
             //params(ws, gameInstance, tankIndex, type)
-            gameInstance.player1.shoot(ws, gameInstance, 1, 1);
+            gameInstance["player" + index].shoot(ws, gameInstance, index, 1);
         }
     }
-    else if (code == KEYBOARD.ENTER) {
-        if (gameInstance.player1.lives > 0) {
-            if (gameInstance.player2.lives > 0) {
-                gameInstance.player2.shoot(ws, gameInstance, 2, 1);
-            }
+    // else if (code == KEYBOARD.ENTER) {
+    //     if (gameInstance.player1.lives > 0) {
+    //         if (gameInstance.player2.lives > 0) {
+    //             gameInstance.player2.shoot(ws, gameInstance, 2, 1);
+    //         }
+    //     }
+    // }
+    else {
+        if (mode == GAME_MODE.MULTIPLAER_GAME) {//multiPlayer不用上下关卡
+            return;
         }
-    } else {
         switch (code) {
             //关卡管理
             case KEYBOARD.N: {//下一关

@@ -126,22 +126,36 @@ const Bullet = function (owner, type, dir) {
 				} else {
 					if (gameInstance.player1.lives > 0 && CheckIntersect(this, gameInstance.player1, 0)) {
 						if (!gameInstance.player1.isProtected && !gameInstance.player1.isDestroyed) {
-							gameInstance.player1.distroy(ws, gameInstance, 1, 1);
+							gameInstance.player1.bloods--;
+							console.log(gameInstance.player1.bloods--);
+							if (gameInstance.player1.bloods <= 0) {
+								gameInstance.player1.distroy(ws, gameInstance, 1, 1);
+							}
+
 						}
 						this.hit = true;
 					} else if (gameInstance.player2.lives > 0 && CheckIntersect(this, gameInstance.player2, 0)) {
 						if (!gameInstance.player2.isProtected && !gameInstance.player2.isDestroyed) {
-							gameInstance.player2.distroy(ws, gameInstance, 1, 2);
+							gameInstance.player2.bloods--;
+							if (gameInstance.player2.bloods <= 0) {
+								gameInstance.player2.distroy(ws, gameInstance, 1, 2);
+							}
 						}
 						this.hit = true;
 					} else if (gameInstance.player3.lives > 0 && CheckIntersect(this, gameInstance.player3, 0)) {
 						if (!gameInstance.player3.isProtected && !gameInstance.player3.isDestroyed) {
-							gameInstance.player3.distroy(ws, gameInstance, 1, 3);
+							gameInstance.player3.bloods--;
+							if (gameInstance.player3.bloods <= 0) {
+								gameInstance.player3.distroy(ws, gameInstance, 1, 3);
+							}
 						}
 						this.hit = true;
 					} else if (gameInstance.player4.lives > 0 && CheckIntersect(this, gameInstance.player4, 0)) {
 						if (!gameInstance.player4.isProtected && !gameInstance.player4.isDestroyed) {
-							gameInstance.player4.distroy(ws, gameInstance, 1, 4);
+							gameInstance.player4.bloods--;
+							if (gameInstance.player4.bloods <= 0) {
+								gameInstance.player4.distroy(ws, gameInstance, 1, 4);
+							}
 						}
 						this.hit = true;
 					}

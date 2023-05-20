@@ -122,7 +122,7 @@ const drawAll = function (ws, gameInstance, multi_sign = false) {
     keyEventForPlayerMove(ws, gameInstance);
     //道具绘制
     if (gameInstance.propTime <= 0) {
-        drawProp(ws, gameInstance);
+        // drawProp(ws, gameInstance);
     } else {
         gameInstance.propTime--;
     }
@@ -262,29 +262,42 @@ const bulletsMoveAndTest = function (gameInstance, ws, bulletObj, bulletIndex) {
 };
 //针对玩家移动的键盘事件
 const keyEventForPlayerMove = function (ws, gameInstance) {
+    gameInstance.keys.forEach((key, index) => {
+        const codeAndPlayer = key.split("-");
+        if (codeAndPlayer[0] == KEYBOARD.W) {
+            // console.log("player1 move up");
+            playerMove(ws, gameInstance, codeAndPlayer[1], UP, false)
+        } else if (codeAndPlayer[0] == KEYBOARD.S) {
+            playerMove(ws, gameInstance, codeAndPlayer[1], DOWN, false)
+        } else if (codeAndPlayer[0] == KEYBOARD.A) {
+            playerMove(ws, gameInstance, codeAndPlayer[1], LEFT, false)
+        } else if (codeAndPlayer[0] == KEYBOARD.D) {
+            playerMove(ws, gameInstance, codeAndPlayer[1], RIGHT, false)
+        }
+    })
     // console.log(gameInstance.keys);
     //player1移动
-    if (gameInstance.keys.contain(KEYBOARD.W)) {
-        // console.log("player1 move up");
-        playerMove(ws, gameInstance, 1, UP, false)
-    } else if (gameInstance.keys.contain(KEYBOARD.S)) {
-        playerMove(ws, gameInstance, 1, DOWN, false)
-    } else if (gameInstance.keys.contain(KEYBOARD.A)) {
-        playerMove(ws, gameInstance, 1, LEFT, false)
-    } else if (gameInstance.keys.contain(KEYBOARD.D)) {
-        playerMove(ws, gameInstance, 1, RIGHT, false)
-    }
-    //player2移动
-    if (gameInstance.keys.contain(KEYBOARD.UP)) {
-        // console.log("player2 move up");
-        playerMove(ws, gameInstance, 2, UP, false)
-    } else if (gameInstance.keys.contain(KEYBOARD.DOWN)) {
-        playerMove(ws, gameInstance, 2, DOWN, false)
-    } else if (gameInstance.keys.contain(KEYBOARD.LEFT)) {
-        playerMove(ws, gameInstance, 2, LEFT, false)
-    } else if (gameInstance.keys.contain(KEYBOARD.RIGHT)) {
-        playerMove(ws, gameInstance, 2, RIGHT, false)
-    }
+    // if (gameInstance.keys.contain(KEYBOARD.W)) {
+    //     // console.log("player1 move up");
+    //     playerMove(ws, gameInstance, 1, UP, false)
+    // } else if (gameInstance.keys.contain(KEYBOARD.S)) {
+    //     playerMove(ws, gameInstance, 1, DOWN, false)
+    // } else if (gameInstance.keys.contain(KEYBOARD.A)) {
+    //     playerMove(ws, gameInstance, 1, LEFT, false)
+    // } else if (gameInstance.keys.contain(KEYBOARD.D)) {
+    //     playerMove(ws, gameInstance, 1, RIGHT, false)
+    // }
+    // //player2移动
+    // if (gameInstance.keys.contain(KEYBOARD.UP)) {
+    //     // console.log("player2 move up");
+    //     playerMove(ws, gameInstance, 2, UP, false)
+    // } else if (gameInstance.keys.contain(KEYBOARD.DOWN)) {
+    //     playerMove(ws, gameInstance, 2, DOWN, false)
+    // } else if (gameInstance.keys.contain(KEYBOARD.LEFT)) {
+    //     playerMove(ws, gameInstance, 2, LEFT, false)
+    // } else if (gameInstance.keys.contain(KEYBOARD.RIGHT)) {
+    //     playerMove(ws, gameInstance, 2, RIGHT, false)
+    // }
 }
 //玩家移动，辅助函数
 const playerMove = function (ws, gameInstance, index, temp_dir, hit) {
